@@ -5,10 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trash Name Generator</title>
     <link rel="stylesheet" href="styles.css">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3294027949260830"
-     crossorigin="anonymous"></script>
+    <style>
+        /* Navbar styling */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        .navbar .links {
+            display: flex;
+        }
+        .navbar a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        /* Dark mode toggle button styling */
+        .navbar #darkModeToggle {
+            cursor: pointer;
+            padding: 14px 20px;
+        }
+        /* Content container styling */
+        .container {
+            width: 20%; /* Adjusted width */
+            max-width: 960px; /* Adjusted max-width */
+            margin: 60px auto 0 auto; /* Adjust margin-top for fixed navbar */
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, color 0.3s; /* Smooth transition for dark mode */
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        /* Dark mode styles */
+        .dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        .dark-mode .container {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        .dark-mode .navbar {
+            background-color: #1c1c1c;
+        }
+        .dark-mode .navbar a {
+            color: #e0e0e0;
+        }
+        .dark-mode .navbar a:hover {
+            background-color: #333;
+        }
+    </style>
 </head>
 <body>
+    <div class="navbar">
+        <div class="links">
+            <a href="index.html">Trash Name Generator</a>
+            <a href="fact.html">Did you know?</a>
+        </div>
+        <a href="#" id="darkModeToggle">🌙 Dark Mode</a> <!-- Dark mode toggle button -->
+    </div>
+
     <div class="container">
         <h1>Trash Name Generator</h1>
         <form id="wordForm">
@@ -19,6 +97,19 @@
     </div>
 
     <script>
+        // Check local storage for dark mode setting
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeToggle').textContent = '🌕 Light Mode';
+        }
+
+        // Toggle dark mode
+        document.getElementById('darkModeToggle').addEventListener('click', function() {
+            const darkModeEnabled = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', darkModeEnabled ? 'enabled' : 'disabled');
+            this.textContent = darkModeEnabled ? '🌕 Light Mode' : '🌙 Dark Mode';
+        });
+
         async function fetchRandomWord() {
             const response = await fetch('https://api.urbandictionary.com/v0/random');
             const data = await response.json();
