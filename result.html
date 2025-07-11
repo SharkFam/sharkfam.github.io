@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-en="Time Waste Result - Trash Tools" data-kr="시간 낭비 결과 - Trash Tools">시간 낭비 결과 - Trash Tools</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        // 즉시 다크모드 설정 적용 (페이지 로드 전)
+        (function() {
+            if (localStorage.getItem('darkMode') !== 'disabled') {
+                document.documentElement.style.setProperty('--bg-image', "url('back2.png')");
+                document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.style.setProperty('--bg-image', "url('back1.png')");
+            }
+        })();
+    </script>
+    <style>
+        /* Body background */
+        body {
+            background: var(--bg-image, url('back1.png')) no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            overflow-x: hidden;
+            transition: background 0.3s ease;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        /* Navbar styling */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        .navbar .links {
+            display: flex;
+        }
+        .navbar a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .navbar #darkModeToggle {
+            cursor: pointer;
+            padding: 14px 20px;
+        }
+        
+        /* Hamburger menu */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 10px;
+        }
+        
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+        
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+        
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        /* Main container */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 80px 20px 20px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: visible;
+            width: 100%;
+        }
+
+        /* Result container */
+        .result-container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            max-width: 700px;
+            width: 100%;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Total time display */
+        .total-time-display {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #889eff;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 20px;
+            display: block;
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 15px rgba(136, 158, 255, 0.3);
+            width: fit-content;
+        }
+
+        /* Score section */
+        .score-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        body .score-section h3 {
+            font-size: 1.2rem;
+            color: #111 !important;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .score-display {
+            font-size: 2rem;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px 25px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-bottom: 10px;
+            transition: color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .score-comment {
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 500;
+            line-height: 1.4;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Activities section */
+        .activities-section {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            margin-bottom: 25px;
+        }
+
+        .activities-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .activities-header h3 {
+            margin: 0;
+            flex: 1;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(45deg, #889eff 0%, #c48aff 100%);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            margin-left: 15px;
+        }
+
+        .refresh-btn:hover {
+            transform: rotate(-180deg);
+            box-shadow: 0 4px 15px rgba(136, 158, 255, 0.4);
+        }
+
+        .refresh-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        body .activities-section h3 {
+            text-align: center;
+            margin: 0 0 15px 0;
+            color: #111 !important;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .activities-list {
+            text-align: left;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .activity-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        body .activity-item {
+            color: #222 !important;
+            font-weight: 500;
+        }
+
+        /* Share button */
+        .share-section {
+            margin-top: 20px;
+        }
+
+        .share-btn {
+            background: linear-gradient(45deg, #889eff 0%, #c48aff 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(136, 158, 255, 0.4);
+        }
+
+        .share-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Back button */
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: #333;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 15px;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .back-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Language Selector */
+        .language-selector {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .language-selector select {
+            padding: 16px 24px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .language-selector select {
+            padding: 16px 24px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        
+        .language-selector select:hover {
+            border-color: #889eff;
+            box-shadow: 0 2px 8px rgba(136, 158, 255, 0.3);
+        }
+
+        /* Dark mode styles */
+        .dark-mode {
+            color: #e0e0e0;
+        }
+
+        .dark-mode .navbar {
+            background-color: #1c1c1c;
+        }
+
+        .dark-mode .navbar a {
+            color: #e0e0e0;
+        }
+
+        .dark-mode .navbar a:hover {
+            background-color: #333;
+        }
+
+        .dark-mode .result-container {
+            background: rgba(30, 30, 30, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .total-time-display {
+            background: rgba(30, 30, 30, 0.2);
+            color: #a8edea !important;
+            box-shadow: 0 4px 15px rgba(168, 237, 234, 0.3);
+        }
+
+        body.dark-mode .score-section h3 {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .score-comment {
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .activities-section h3 {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .activity-item {
+            color: #e0e0e0 !important;
+        }
+
+
+
+        body.dark-mode .back-btn {
+            background: rgba(30, 30, 30, 0.3);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        body.dark-mode .back-btn:hover {
+            background: rgba(30, 30, 30, 0.5);
+            color: #ffffff;
+        }
+
+        .dark-mode .language-selector select {
+            background: #333;
+            color: #e0e0e0;
+            border-color: #555;
+        }
+        
+        .dark-mode .language-selector select:hover {
+            border-color: #a8edea;
+            box-shadow: 0 2px 8px rgba(168, 237, 234, 0.3);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+            
+            .navbar .links {
+                position: fixed;
+                left: -100%;
+                top: 60px;
+                flex-direction: column;
+                background-color: #333;
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                box-shadow: 0 10px 27px rgba(0, 0, 0, 0.05);
+            }
+            
+            .navbar .links.active {
+                left: 0;
+            }
+            
+            .navbar .links a {
+                margin: 0;
+                padding: 20px;
+                border-bottom: 1px solid #555;
+            }
+
+            .result-container {
+                padding: 25px;
+                margin: 10px;
+            }
+
+            .total-time-display {
+                font-size: 1.2rem;
+                padding: 10px 16px;
+            }
+
+            .score-display {
+                font-size: 1.6rem;
+                padding: 12px 20px;
+            }
+
+            .score-comment {
+                font-size: 1rem;
+            }
+
+            .activities-section {
+                padding: 15px;
+            }
+
+            .activity-item {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+
+            .share-btn,
+            .back-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .language-selector {
+                bottom: 10px;
+                right: 10px;
+            }
+            
+            .language-selector select {
+                padding: 12px 16px;
+                font-size: 16px;
+                min-width: 100px;
+                max-height: 150px;
+            }
+
+            .activities-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .refresh-btn {
+                width: 32px;
+                height: 32px;
+                margin-left: 0;
+            }
+
+            .refresh-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="links" id="navLinks">
+            <a href="index.html" data-en="Home" data-kr="홈">Home</a>
+            <a href="trash.html" data-en="Trash Name Generator" data-kr="쓰레기 이름 생성기">Trash Name Generator</a>
+            <a href="fact.html" data-en="Did you know?" data-kr="알고 계셨나요?">Did you know?</a>
+            <a href="yesno.html" data-en="Yes or No" data-kr="예 또는 아니오">Yes or No</a>
+            <a href="time.html" data-en="Time Waste Calculator" data-kr="시간 낭비 계산기">Time Waste Calculator</a>
+            <a href="bmi.html" data-en="What's my weight?" data-kr="내 체중은?">내 체중은?</a>
+        </div>
+        <a href="#" id="darkModeToggle" data-en="🌙 Dark Mode" data-kr="🌙 다크 모드">🌙 Dark Mode</a>
+    </div>
+
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <select id="languageSelect" onchange="changeLanguage()">
+            <option value="en">English</option>
+            <option value="kr">한국어</option>
+        </select>
+    </div>
+
+    <div class="main-container">
+        <div class="result-container">
+            <div class="total-time-display" id="totalTimeDisplay">0분</div>
+
+            <div class="score-section">
+                <h3 data-en="Time Waste Score" data-kr="시간 낭비 점수">시간 낭비 점수</h3>
+                <div class="score-display" id="scoreDisplay">0점</div>
+                <div class="score-comment" id="scoreComment">평가 문구가 여기에 표시됩니다</div>
+            </div>
+
+            <div class="activities-section">
+                <div class="activities-header">
+                    <h3 data-en="🎯 Things you could have done in that time" data-kr="🎯 이 시간에 할 수 있었던 것들">🎯 이 시간에 할 수 있었던 것들</h3>
+                    <button class="refresh-btn" onclick="refreshActivities()" title="다른 활동 보기">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="activities-list" id="activitiesList">
+                    <!-- Activities will be populated here -->
+                </div>
+            </div>
+
+            <div class="share-section">
+                <a href="time.html" class="share-btn" data-en="🧪 Try Again" data-kr="🧪 다시하기">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    테스트하기
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get wasted time from URL parameter
+        function getWastedTime() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const wasted = parseInt(urlParams.get('wasted')) || 0;
+            return Math.max(0, wasted); // Ensure non-negative
+        }
+
+        // Calculate score
+        function calculateScore(wastedTime) {
+            const score = Math.round((1 - wastedTime / 720) * 100);
+            return Math.max(0, Math.min(100, score)); // Ensure score is between 0-100
+        }
+
+        // Get score comment based on score range
+        function getScoreComment(score) {
+            const currentLanguage = document.getElementById('languageSelect').value;
+            
+            if (score >= 90) {
+                return currentLanguage === 'kr' ? 
+                    "👑 지립니다 형님 시간을 알차게 쓰시네요" : 
+                    "👑 You're dominating time. Are you a productivity robot..?";
+            } else if (score >= 75) {
+                return currentLanguage === 'kr' ? 
+                    "🧠 꽤 알차게 살았네요. 이 정도면 합격입니다!" : 
+                    "🧠 Pretty productive day! This is a pass!";
+            } else if (score >= 50) {
+                return currentLanguage === 'kr' ? 
+                    "🙂 쓸데없는 것도 했지만... 괜찮아요, 사람 사는 거죠" : 
+                    "🙂 Did some useless stuff but... it's okay, that's life";
+            } else if (score >= 30) {
+                return currentLanguage === 'kr' ? 
+                    "😅 조금은 과하게 흘렸네요. 내일은 조금만 아껴봐요" : 
+                    "😅 Wasted a bit too much. Try to save some time tomorrow";
+            } else if (score >= 10) {
+                return currentLanguage === 'kr' ? 
+                    "🫠 시간이 모래처럼… 어디로 간 거죠?" : 
+                    "🫠 Time slipped through like sand... where did it go?";
+            } else {
+                return currentLanguage === 'kr' ? 
+                    "💀 하루를 통째로 소각했습니다. 리셋이 필요합니다." : 
+                    "💀 Completely incinerated the whole day. Try time warp";
+            }
+        }
+
+        // Activities data
+        const activities = [
+            {
+                name: {
+                    en: "Learn English Words",
+                    kr: "영어 단어 외우기"
+                },
+                rate: 1, // 1개/분
+                unit: {
+                    en: "words",
+                    kr: "개"
+                },
+                drip: {
+                    en: "Upgrade your English skills word by word! 📚",
+                    kr: "단어 하나씩 외우며 영어 실력 업그레이드! 📚"
+                }
+            },
+            {
+                name: {
+                    en: "Push-ups",
+                    kr: "팔굽혀펴기"
+                },
+                rate: 5, // 5개/분
+                unit: {
+                    en: "times",
+                    kr: "개"
+                },
+                drip: {
+                    en: "Build muscles and stay healthy! 💪",
+                    kr: "근육 만들며 건강 관리! 💪"
+                }
+            },
+            {
+                name: {
+                    en: "Walking",
+                    kr: "산책하기"
+                },
+                rate: 30/1, // 50m/분
+                unit: {
+                    en: "m",
+                    kr: "m"
+                },
+                drip: {
+                    en: "Breathe fresh air and stay healthy! 🚶‍♀️",
+                    kr: "신선한 공기 마시며 건강 관리! 🚶‍♀️"
+                }
+            },
+            {
+                name: {
+                    en: "Watch Drama",
+                    kr: "드라마 시청"
+                },
+                rate: 1/70, // 1편/70분
+                unit: {
+                    en: "episodes",
+                    kr: "편"
+                },
+                drip: {
+                    en: "Relieve stress with one drama episode! 🎬",
+                    kr: "드라마 한 편으로 스트레스 해소! 🎬"
+                }
+            },
+            {
+                name: {
+                    en: "Enjoy Memes",
+                    kr: "밈 감상"
+                },
+                rate: 1, // 1개/분
+                unit: {
+                    en: "memes",
+                    kr: "개"
+                },
+                drip: {
+                    en: "Relieve stress with one laugh! 😂",
+                    kr: "웃음 한 번에 스트레스 해소! 😂"
+                }
+            },
+            {
+                name: {
+                    en: "Read Books",
+                    kr: "책 읽기"
+                },
+                rate: 1, // 1쪽/분
+                unit: {
+                    en: "pages",
+                    kr: "쪽"
+                },
+                drip: {
+                    en: "Build knowledge and reading habits! 📖",
+                    kr: "지식 쌓으며 독서 습관 만들기! 📖"
+                }
+            },
+            {
+                name: {
+                    en: "Meditation",
+                    kr: "명상하기"
+                },
+                rate: 1/20, // 1회/20분
+                unit: {
+                    en: "sessions",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Find peace of mind! 🧘‍♀️",
+                    kr: "마음의 평화 찾기! 🧘‍♀️"
+                }
+            },
+            {
+                name: {
+                    en: "Make Coffee",
+                    kr: "커피 내리기"
+                },
+                rate: 1/15, // 1잔/15분
+                unit: {
+                    en: "cups",
+                    kr: "잔"
+                },
+                drip: {
+                    en: "Change mood with fragrant coffee! ☕",
+                    kr: "향긋한 커피로 기분 전환! ☕"
+                }
+            },
+            {
+                name: {
+                    en: "Charge Smartphone",
+                    kr: "스마트폰 충전"
+                },
+                rate: 1/1, // 1%/2분
+                unit: {
+                    en: "%",
+                    kr: "%"
+                },
+                drip: {
+                    en: "Fill battery one percent at a time! 🔋",
+                    kr: "배터리 한 퍼센트씩 채우기! 🔋"
+                }
+            },
+            {
+                name: {
+                    en: "Send Greetings to Friends",
+                    kr: "친구에게 안부 보내기"
+                },
+                rate: 1/15, // 1명/15분
+                unit: {
+                    en: "friends",
+                    kr: "명"
+                },
+                drip: {
+                    en: "Build relationships by communicating with friends! 💬",
+                    kr: "친구들과 소통하며 관계 쌓기! 💬"
+                }
+            },
+            {
+                name: {
+                    en: "Abs Workout",
+                    kr: "복근 운동"
+                },
+                rate: 1/10, // 1세트/10분
+                unit: {
+                    en: "sets",
+                    kr: "세트"
+                },
+                drip: {
+                    en: "Build abs and stay healthy! 🏋️‍♀️",
+                    kr: "복근 만들며 건강 관리! 🏋️‍♀️"
+                }
+            },
+            {
+                name: {
+                    en: "Write Blog",
+                    kr: "블로그 쓰기"
+                },
+                rate: 1/15, // 100자/15분
+                unit: {
+                    en: "100 chars",
+                    kr: "100자"
+                },
+                drip: {
+                    en: "Organize thoughts in writing and leave records! ✍️",
+                    kr: "생각을 글로 정리하며 기록 남기기! ✍️"
+                }
+            },
+            {
+                name: {
+                    en: "Sleep Cycle",
+                    kr: "수면 사이클"
+                },
+                rate: 1/90, // 1회/90분
+                unit: {
+                    en: "cycles",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Relieve fatigue with deep sleep! 😴",
+                    kr: "깊은 잠으로 피로 해소! 😴"
+                }
+            },
+            {
+                name: {
+                    en: "Self-Blame Loop",
+                    kr: "자책 루프"
+                },
+                rate: 999, // 무한
+                unit: {
+                    en: "times",
+                    kr: "번"
+                },
+                drip: {
+                    en: "Regret wasting time and waste more time! 😅",
+                    kr: "시간 낭비한 걸 후회하며 또 시간 낭비! 😅"
+                }
+            },
+            {
+                name: {
+                    en: "Listen to Music",
+                    kr: "노래 듣기"
+                },
+                rate: 1/4, // 1곡/4분
+                unit: {
+                    en: "songs",
+                    kr: "곡"
+                },
+                drip: {
+                    en: "Change mood with good music! 🎵",
+                    kr: "좋은 음악으로 기분 전환! 🎵"
+                }
+            },
+            {
+                name: {
+                    en: "Take a Bath",
+                    kr: "반신욕"
+                },
+                rate: 1/40, // 1회/40분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Relieve fatigue with warm water! 🛁",
+                    kr: "따뜻한 물로 피로 해소! 🛁"
+                }
+            },
+            {
+                name: {
+                    en: "Prepare Meal",
+                    kr: "식사 준비"
+                },
+                rate: 1/40, // 1끼/40분
+                unit: {
+                    en: "meals",
+                    kr: "끼"
+                },
+                drip: {
+                    en: "Change mood with delicious cooking! 👨‍🍳",
+                    kr: "맛있는 요리로 기분 전환! 👨‍🍳"
+                }
+            },
+            {
+                name: {
+                    en: "Do Laundry",
+                    kr: "세탁기 돌리기"
+                },
+                rate: 1/70, // 1회/70분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Change mood with clean clothes! 👕",
+                    kr: "깨끗한 옷으로 기분 전환! 👕"
+                }
+            },
+            {
+                name: {
+                    en: "Clean Room",
+                    kr: "방 청소"
+                },
+                rate: 1/60, // 1회/60분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Change mood with clean space! 🧹",
+                    kr: "깨끗한 공간으로 기분 전환! 🧹"
+                }
+            },
+            {
+                name: {
+                    en: "Water Plants",
+                    kr: "화분 물 주기"
+                },
+                rate: 1/20, // 1회/20분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Grow together with plants! 🌱",
+                    kr: "식물과 함께 성장하기! 🌱"
+                }
+            },
+            {
+                name: {
+                    en: "Stretching",
+                    kr: "스트레칭"
+                },
+                rate: 1/5, // 1세트/5분
+                unit: {
+                    en: "sets",
+                    kr: "세트"
+                },
+                drip: {
+                    en: "Stay healthy with flexible body! 🤸‍♀️",
+                    kr: "유연한 몸으로 건강 관리! 🤸‍♀️"
+                }
+            },
+            {
+                name: {
+                    en: "Make Bed",
+                    kr: "이불 개기"
+                },
+                rate: 1/10, // 1회/10분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Change mood with neat bedroom! 🛏️",
+                    kr: "깔끔한 침실로 기분 전환! 🛏️"
+                }
+            },
+            {
+                name: {
+                    en: "Edit Resume",
+                    kr: "이력서 수정"
+                },
+                rate: 1/60, // 1회/60분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Plan future with job preparation! 📄",
+                    kr: "취업 준비로 미래 설계! 📄"
+                }
+            },
+            {
+                name: {
+                    en: "Write Bucket List",
+                    kr: "버킷리스트 쓰기"
+                },
+                rate: 1/30, // 1장/30분
+                unit: {
+                    en: "pages",
+                    kr: "장"
+                },
+                drip: {
+                    en: "Get motivated by organizing dreams and goals! 📝",
+                    kr: "꿈과 목표를 정리하며 동기부여! 📝"
+                }
+            },
+            {
+                name: {
+                    en: "Organize Account",
+                    kr: "계좌 정리"
+                },
+                rate: 1/20, // 1회/20분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Secure future with financial management! 💰",
+                    kr: "재정 관리로 안정적인 미래! 💰"
+                }
+            },
+            {
+                name: {
+                    en: "Call Family",
+                    kr: "가족에게 전화"
+                },
+                rate: 1/20, // 1통/20분
+                unit: {
+                    en: "calls",
+                    kr: "통"
+                },
+                drip: {
+                    en: "Share love by communicating with family! 👨‍👩‍👧‍👦",
+                    kr: "가족과 소통하며 사랑 나누기! 👨‍👩‍👧‍👦"
+                }
+            },
+            {
+                name: {
+                    en: "Learn by Googling",
+                    kr: "구글링으로 지식 쌓기"
+                },
+                rate: 1/20, // 1주제/20분
+                unit: {
+                    en: "topics",
+                    kr: "주제"
+                },
+                drip: {
+                    en: "Build knowledge by satisfying curiosity! 🔍",
+                    kr: "호기심을 채우며 지식 쌓기! 🔍"
+                }
+            },
+            {
+                name: {
+                    en: "Stare at Wall",
+                    kr: "벽 바라보기"
+                },
+                rate: 1, // 1회/분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Relieve stress by spacing out! 🧱",
+                    kr: "멍때리며 스트레스 해소! 🧱"
+                }
+            },
+            {
+                name: {
+                    en: "Draw Doodles",
+                    kr: "그림 낙서하기"
+                },
+                rate: 1/30, // 1장/30분
+                unit: {
+                    en: "drawings",
+                    kr: "장"
+                },
+                drip: {
+                    en: "Develop artistic sense with creativity! 🎨",
+                    kr: "창의력을 발휘하며 예술 감각 키우기! 🎨"
+                }
+            },
+            {
+                name: {
+                    en: "Look Out Window",
+                    kr: "창밖 보기"
+                },
+                rate: 1/10, // 1회/10분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Find peace of mind by looking at nature! 🌳",
+                    kr: "자연을 바라보며 마음의 평화 찾기! 🌳"
+                }
+            }
+        ];
+
+        // Generate activities list
+        function generateActivities(wastedTime) {
+            const currentLanguage = document.getElementById('languageSelect').value;
+            const possibleActivities = [];
+
+            // Generate all possible activities
+            activities.forEach(activity => {
+                const count = Math.floor(wastedTime * activity.rate);
+                if (count > 0) {
+                    const unit = currentLanguage === 'kr' ? activity.unit.kr : activity.unit.en;
+                    const name = currentLanguage === 'kr' ? activity.name.kr : activity.name.en;
+                    
+                    let text;
+                    if (currentLanguage === 'kr') {
+                        text = `${wastedTime}분이면 ${name} ${count}${unit}를 할 수 있었습니다`;
+                    } else {
+                        text = `In ${wastedTime} minutes, you could have done ${count} ${unit} of ${name}`;
+                    }
+                    
+                    possibleActivities.push({
+                        text: text
+                    });
+                }
+            });
+
+            // Return random 3 activities
+            const shuffled = possibleActivities.sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, 3).map(activity => activity.text);
+        }
+
+        // Update score color based on score
+        function updateScoreColor(score) {
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            
+            // Calculate color based on score (0 = red, 100 = green)
+            let r, g, b;
+            
+            if (score <= 50) {
+                // Red to Yellow (0-50)
+                r = 255;
+                g = Math.round((score / 50) * 255);
+                b = 0;
+            } else {
+                // Yellow to Green (50-100)
+                r = Math.round(((100 - score) / 50) * 255);
+                g = 255;
+                b = 0;
+            }
+            
+            const color = `rgb(${r}, ${g}, ${b})`;
+            const shadowColor = `rgba(${r}, ${g}, ${b}, 0.3)`;
+            
+            scoreDisplay.style.color = color;
+            scoreDisplay.style.boxShadow = `0 4px 15px ${shadowColor}`;
+        }
+
+        // Share result
+        async function shareResult() {
+            const currentUrl = window.location.href;
+            
+            if (navigator.share) {
+                // Use Web Share API if available
+                try {
+                    await navigator.share({
+                        title: 'My Time Waste Result',
+                        text: 'Check out my time waste score!',
+                        url: currentUrl
+                    });
+                } catch (err) {
+                    // Fallback to clipboard
+                    copyToClipboard(currentUrl);
+                }
+            } else {
+                // Fallback to clipboard
+                copyToClipboard(currentUrl);
+            }
+        }
+
+        // Copy to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const currentLanguage = document.getElementById('languageSelect').value;
+                const message = currentLanguage === 'kr' ? '링크가 클립보드에 복사되었습니다!' : 'Link copied to clipboard!';
+                alert(message);
+            }).catch(() => {
+                const currentLanguage = document.getElementById('languageSelect').value;
+                const message = currentLanguage === 'kr' ? '링크 복사에 실패했습니다.' : 'Failed to copy link.';
+                alert(message);
+            });
+        }
+
+        // Refresh activities function
+        function refreshActivities() {
+            const wastedTime = getWastedTime();
+            const activities = generateActivities(wastedTime);
+            
+            // Update activities list
+            const activitiesList = document.getElementById('activitiesList');
+            activitiesList.innerHTML = activities.map(activity => 
+                `<div class="activity-item">${activity}</div>`
+            ).join('');
+        }
+
+        // Display results
+        function displayResults() {
+            const wastedTime = getWastedTime();
+            const score = calculateScore(wastedTime);
+            const scoreComment = getScoreComment(score);
+            const activities = generateActivities(wastedTime);
+            
+            // Update time display
+            const currentLanguage = document.getElementById('languageSelect').value;
+            const timeUnit = currentLanguage === 'kr' ? '분' : 'min';
+            document.getElementById('totalTimeDisplay').textContent = `${wastedTime}${timeUnit}`;
+            
+            // Update score display
+            const scoreText = currentLanguage === 'kr' ? `${score}점` : `${score} points`;
+            document.getElementById('scoreDisplay').textContent = scoreText;
+            document.getElementById('scoreComment').textContent = scoreComment;
+            
+            // Update activities list
+            const activitiesList = document.getElementById('activitiesList');
+            activitiesList.innerHTML = activities.map(activity => 
+                `<div class="activity-item">${activity}</div>`
+            ).join('');
+            
+            // Update score color
+            updateScoreColor(score);
+        }
+
+        // Language change function
+        function changeLanguage() {
+            const language = document.getElementById('languageSelect').value;
+            localStorage.setItem('language', language);
+            
+            // Update all elements with data attributes
+            const elements = document.querySelectorAll('[data-en][data-kr]');
+            elements.forEach(element => {
+                if (language === 'kr') {
+                    element.innerHTML = element.getAttribute('data-kr');
+                } else {
+                    element.innerHTML = element.getAttribute('data-en');
+                }
+            });
+            
+            // Update dark mode toggle button text
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            if (isDarkMode) {
+                darkModeToggle.innerHTML = language === 'kr' ? '🌕 라이트 모드' : '🌕 Light Mode';
+            } else {
+                darkModeToggle.innerHTML = language === 'kr' ? '🌙 다크 모드' : '🌙 Dark Mode';
+            }
+
+            // Refresh results with new language
+            displayResults();
+        }
+
+        // Initialize site features
+        function initializeSiteFeatures() {
+            // Check local storage for dark mode setting
+            if (localStorage.getItem('darkMode') !== 'disabled') {
+                document.body.classList.add('dark-mode');
+                document.documentElement.style.setProperty('--bg-image', "url('back2.png')");
+            }
+
+            // Load saved language preference
+            const savedLanguage = localStorage.getItem('language') || 'kr';
+            document.getElementById('languageSelect').value = savedLanguage;
+            changeLanguage();
+            
+            // Set initial dark mode toggle button text
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (isDarkMode) {
+                darkModeToggle.innerHTML = savedLanguage === 'kr' ? '🌕 라이트 모드' : '🌕 Light Mode';
+            }
+
+            // Hamburger menu functionality
+            const hamburger = document.getElementById('hamburger');
+            const navLinks = document.getElementById('navLinks');
+            
+            hamburger.addEventListener('click', function() {
+                hamburger.classList.toggle('active');
+                navLinks.classList.toggle('active');
+            });
+            
+            // Close menu when clicking on a link
+            document.querySelectorAll('.navbar .links a').forEach(link => {
+                link.addEventListener('click', () => {
+                    hamburger.classList.remove('active');
+                    navLinks.classList.remove('active');
+                });
+            });
+
+            // Dark mode toggle
+            darkModeToggle.addEventListener('click', function() {
+                const darkModeEnabled = document.body.classList.toggle('dark-mode');
+                localStorage.setItem('darkMode', darkModeEnabled ? 'enabled' : 'disabled');
+                
+                // Change background based on mode
+                if (darkModeEnabled) {
+                    document.documentElement.style.setProperty('--bg-image', "url('back2.png')");
+                } else {
+                    document.documentElement.style.setProperty('--bg-image', "url('back1.png')");
+                }
+                
+                // Update button text based on current language
+                const currentLanguage = document.getElementById('languageSelect').value;
+                if (darkModeEnabled) {
+                    this.innerHTML = currentLanguage === 'kr' ? '🌕 라이트 모드' : '🌕 Light Mode';
+                } else {
+                    this.innerHTML = currentLanguage === 'kr' ? '🌙 다크 모드' : '🌙 Dark Mode';
+                }
+            });
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSiteFeatures();
+            displayResults();
+            
+            // Mobile dropdown positioning
+            const languageSelect = document.getElementById('languageSelect');
+            if (languageSelect) {
+                languageSelect.addEventListener('focus', function() {
+                    if (window.innerWidth <= 768) {
+                        // Check if dropdown would go below viewport
+                        const rect = this.getBoundingClientRect();
+                        const dropdownHeight = 150; // Approximate dropdown height
+                        const viewportHeight = window.innerHeight;
+                        
+                        if (rect.bottom + dropdownHeight > viewportHeight) {
+                            // Move the selector up if dropdown would be cut off
+                            const languageSelector = document.querySelector('.language-selector');
+                            languageSelector.style.bottom = 'auto';
+                            languageSelector.style.top = '20px';
+                        }
+                    }
+                });
+                
+                languageSelect.addEventListener('blur', function() {
+                    if (window.innerWidth <= 768) {
+                        // Reset position when dropdown closes
+                        const languageSelector = document.querySelector('.language-selector');
+                        languageSelector.style.bottom = '20px';
+                        languageSelector.style.top = 'auto';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

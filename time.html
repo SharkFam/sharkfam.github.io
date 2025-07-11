@@ -1,0 +1,2121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-en="Time Waste Calculator - Trash Tools" data-kr="시간 낭비 계산기 - Trash Tools">시간 낭비 계산기 - Trash Tools</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // 즉시 다크모드 설정 적용 (페이지 로드 전)
+        (function() {
+            if (localStorage.getItem('darkMode') !== 'disabled') {
+                document.documentElement.style.setProperty('--bg-image', "url('back2.png')");
+                document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.style.setProperty('--bg-image', "url('back1.png')");
+            }
+        })();
+    </script>
+    <style>
+        /* Body background */
+        body {
+            background: var(--bg-image, url('back1.png')) no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            overflow-x: hidden;
+            transition: background 0.3s ease;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        /* Navbar styling */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        .navbar .links {
+            display: flex;
+        }
+        .navbar a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .navbar #darkModeToggle {
+            cursor: pointer;
+            padding: 14px 20px;
+        }
+        
+        /* Hamburger menu */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 10px;
+        }
+        
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+        
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+        
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        /* Main container */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 80px 20px 20px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: visible;
+            width: 100%;
+        }
+
+        /* Start container */
+        .start-container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            max-width: 900px;
+            width: 100%;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .start-container.slide-out {
+            transform: translateX(-200%);
+            opacity: 0;
+        }
+
+        /* Title section */
+        .title-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .main-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #889eff 0%, #c48aff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        body .subtitle {
+            font-size: 1rem;
+            color: #111 !important;
+            margin-bottom: 0;
+            font-weight: 600;
+        }
+
+        /* Questions container */
+        .questions-container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            max-width: 900px;
+            width: 100%;
+            margin-bottom: 20px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translateX(200%);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .questions-container.slide-in {
+            transform: translate(-50%, -50%) translateX(0);
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .questions-container.slide-out {
+            transform: translate(-50%, -50%) translateX(-200%);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* Question section */
+        .question-section {
+            text-align: center;
+        }
+
+        body .question-title {
+            font-size: 1.6rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #111 !important;
+        }
+
+        body .question-subtitle {
+            font-size: 1rem;
+            color: #111 !important;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .question-input {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .question-input input {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #333;
+            font-size: 16px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .question-input input:focus {
+            outline: none;
+            border-color: #889eff;
+            box-shadow: 0 0 15px rgba(136, 158, 255, 0.3);
+        }
+
+        .next-btn {
+            background: linear-gradient(45deg, #889eff 0%, #c48aff 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(136, 158, 255, 0.4);
+        }
+
+        .next-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .question-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        body .skip-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: #111 !important;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        body .skip-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            color: #000 !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #889eff 0%, #c48aff 100%);
+            border-radius: 3px;
+            transition: width 0.15s ease;
+            width: 0%;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #333;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #889eff;
+            box-shadow: 0 0 10px rgba(136, 158, 255, 0.3);
+        }
+
+        /* Calculate button */
+        .start-btn {
+            background: linear-gradient(45deg, #889eff 0%, #c48aff 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(136, 158, 255, 0.4);
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(136, 158, 255, 0.4);
+        }
+
+        /* Results section */
+        .results-section {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 25px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            max-width: 900px;
+            width: 100%;
+            margin-bottom: 20px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translateX(200%);
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .results-section.slide-in {
+            transform: translate(-50%, -50%) translateX(0);
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .results-section.slide-out {
+            transform: translate(-50%, -50%) translateX(200%);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* Total time display at top center */
+        .total-time-display {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #889eff;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            border-radius: 20px;
+            display: block;
+            margin: 0 auto 20px;
+            box-shadow: 0 4px 15px rgba(136, 158, 255, 0.3);
+            width: fit-content;
+        }
+
+        /* Chart container */
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-bottom: 20px;
+        }
+
+        /* Score section */
+        .score-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        body .score-section h3 {
+            font-size: 1rem;
+            color: #111 !important;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .score-display {
+            font-size: 1.4rem;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 16px;
+            border-radius: 15px;
+            display: inline-block;
+            margin-bottom: 8px;
+            transition: color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .score-comment {
+            font-size: 0.9rem;
+            color: #333;
+            font-weight: 500;
+            line-height: 1.3;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        /* Chart container */
+        .chart-container {
+            position: relative;
+            height: 200px;
+            margin-bottom: 15px;
+        }
+
+        /* Activities section */
+        .activities-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .activities-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        body .activities-section h3 {
+            text-align: center;
+            margin: 0;
+            color: #111 !important;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(45deg, #889eff 0%, #c48aff 100%);
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .refresh-btn:hover {
+            transform: rotate(-180deg);
+            box-shadow: 0 4px 15px rgba(136, 158, 255, 0.4);
+        }
+
+        .refresh-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .activities-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .activity-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center;
+            transition: opacity 0.3s ease;
+        }
+
+        .activity-item.fade-out {
+            opacity: 0;
+        }
+
+        .activity-item.fade-in {
+            opacity: 1;
+        }
+
+        body .activity-name {
+            font-weight: 600;
+            color: #111 !important;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+
+        .activity-count {
+            font-size: 1rem;
+            color: #889eff;
+            font-weight: bold;
+        }
+
+        body .activity-drip {
+            font-size: 0.8rem;
+            color: #222 !important;
+            font-style: italic;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        /* Back button */
+        .back-btn {
+            background: linear-gradient(45deg, #889eff 0%, #c48aff 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 20px auto 0;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(136, 158, 255, 0.4);
+        }
+
+        .back-btn svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .back-btn:hover svg {
+            transform: translateX(-3px);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+            
+            .navbar .links {
+                position: fixed;
+                left: -100%;
+                top: 60px;
+                flex-direction: column;
+                background-color: #333;
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                box-shadow: 0 10px 27px rgba(0, 0, 0, 0.05);
+            }
+            
+            .navbar .links.active {
+                left: 0;
+            }
+            
+            .navbar .links a {
+                margin: 0;
+                padding: 20px;
+                border-bottom: 1px solid #555;
+            }
+
+            .main-title {
+                font-size: 1.8rem;
+            }
+
+            .start-container,
+            .questions-container,
+            .results-section {
+                padding: 25px;
+                margin: 10px;
+            }
+
+            .activities-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .question-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .next-btn,
+            .skip-btn {
+                min-width: 200px;
+            }
+
+            .total-time-display {
+                font-size: 1.2rem;
+                padding: 10px 16px;
+            }
+
+            .chart-container {
+                height: 200px;
+            }
+
+            .activity-item {
+                padding: 15px;
+            }
+
+            .activity-name {
+                font-size: 1rem;
+            }
+
+            .activity-count {
+                font-size: 1.1rem;
+            }
+
+            .activity-drip {
+                font-size: 0.9rem;
+            }
+
+            .language-selector {
+                bottom: 10px;
+                right: 10px;
+            }
+            
+            .language-selector select {
+                padding: 12px 16px;
+                font-size: 16px;
+                min-width: 100px;
+                max-height: 150px;
+            }
+        }
+
+        /* Dark mode styles */
+        .dark-mode {
+            color: #e0e0e0;
+        }
+
+        .dark-mode .navbar {
+            background-color: #1c1c1c;
+        }
+
+        .dark-mode .navbar a {
+            color: #e0e0e0;
+        }
+
+        .dark-mode .navbar a:hover {
+            background-color: #333;
+        }
+
+        .dark-mode .start-container,
+        .dark-mode .questions-container,
+        .dark-mode .results-section {
+            background: rgba(30, 30, 30, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dark-mode .activities-section,
+        .dark-mode .activity-item {
+            background: rgba(30, 30, 30, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .total-time-display {
+            background: rgba(30, 30, 30, 0.2);
+            color: #a8edea !important;
+            box-shadow: 0 4px 15px rgba(168, 237, 234, 0.3);
+        }
+
+        body.dark-mode .activities-section h3 {
+            color: #ffffff !important;
+            font-weight: 600;
+        }
+
+        body.dark-mode .activity-drip {
+            color: #ccc !important;
+            font-weight: 500;
+        }
+
+        body.dark-mode .score-comment {
+            color: #e0e0e0 !important;
+        }
+
+        body.dark-mode .score-section h3 {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .question-title,
+        body.dark-mode .activity-name {
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .subtitle,
+        body.dark-mode .question-subtitle {
+            color: #e0e0e0 !important;
+            font-weight: 500;
+        }
+
+        .dark-mode .question-input input {
+            background: rgba(30, 30, 30, 0.3);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        body.dark-mode .skip-btn {
+            background: rgba(30, 30, 30, 0.3);
+            color: #e0e0e0 !important;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        body.dark-mode .skip-btn:hover {
+            background: rgba(30, 30, 30, 0.5);
+            color: #ffffff !important;
+        }
+
+        /* Share section */
+        .share-section {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+
+
+        /* Language Selector */
+        .language-selector {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        /* Hide language selector in results section */
+        .results-section .language-selector {
+            display: none;
+        }
+        
+        .language-selector select {
+            padding: 16px 24px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .language-selector select {
+            padding: 16px 24px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        
+        .language-selector select:hover {
+            border-color: #889eff;
+            box-shadow: 0 2px 8px rgba(136, 158, 255, 0.3);
+        }
+        
+        .dark-mode .language-selector select {
+            background: #333;
+            color: #e0e0e0;
+            border-color: #555;
+        }
+        
+        .dark-mode .language-selector select:hover {
+            border-color: #a8edea;
+            box-shadow: 0 2px 8px rgba(168, 237, 234, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="links" id="navLinks">
+            <a href="index.html" data-en="Home" data-kr="홈">Home</a>
+            <a href="time.html" data-en="Time Waste Calculator" data-kr="시간 낭비 계산기">Time Waste Calculator</a>
+            <a href="bmi.html" data-en="What's my weight?" data-kr="내 체중은?">내 체중은?</a>
+            <a href="fact.html" data-en="Did you know?" data-kr="알고 계셨나요?">Did you know?</a>
+            <a href="yesno.html" data-en="Yes or No" data-kr="예 또는 아니오">Yes or No</a>
+            <a href="trash.html" data-en="Trash Name Generator" data-kr="쓰레기 이름 생성기">Trash Name Generator</a>
+        </div>
+        <a href="#" id="darkModeToggle" data-en="🌙 Dark Mode" data-kr="🌙 다크 모드">🌙 Dark Mode</a>
+    </div>
+
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <select id="languageSelect" onchange="changeLanguage()">
+            <option value="en">English</option>
+            <option value="kr">한국어</option>
+        </select>
+    </div>
+
+    <div class="main-container">
+        <!-- Start Screen -->
+        <div class="start-container">
+            <div class="title-section">
+                <h1 class="main-title" data-en="⏰ Time Waste Calculator" data-kr="⏰ 시간 낭비 계산기">⏰ 시간 낭비 계산기</h1>
+                <p class="subtitle" data-en="Check how your precious time is being spent!" data-kr="당신의 소중한 시간이 어떻게 쓰이고 있는지 확인해보세요!">당신의 소중한 시간이 어떻게 쓰이고 있는지 확인해보세요!</p>
+            </div>
+            <button class="start-btn" onclick="startQuestions()" data-en="Start" data-kr="시작하기">시작하기</button>
+        </div>
+
+        <!-- Questions Container -->
+        <div class="questions-container">
+            <div class="question-section">
+                <h2 class="question-title" id="questionTitle">📱 폰 사용 시간</h2>
+                <p class="question-subtitle" id="questionSubtitle">하루에 폰을 얼마나 사용하시나요?</p>
+                <div class="question-input">
+                    <input type="number" id="questionInput" placeholder="분 단위로 입력해주세요" min="0">
+                    <div class="question-buttons">
+                        <button class="skip-btn" onclick="skipQuestion()" data-en="I didn't do this" data-kr="이건 안했어요">이건 안했어요</button>
+                        <button class="next-btn" onclick="nextQuestion()" data-en="Next" data-kr="다음">다음</button>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <button class="back-btn" onclick="goBack()" style="margin-top: 20px;" data-en="Back" data-kr="뒤로가기">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    뒤로가기
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <div class="total-time-display" id="totalTimeDisplay">0분</div>
+
+            <div class="chart-container">
+                <canvas id="timeChart"></canvas>
+            </div>
+
+            <div class="score-section">
+                <h3 data-en="Your Time Waste Score" data-kr="당신의 시간 낭비 점수">당신의 시간 낭비 점수</h3>
+                <div class="score-display" id="scoreDisplay">0점</div>
+                <div class="score-comment" id="scoreComment">평가 문구가 여기에 표시됩니다</div>
+            </div>
+
+            <div class="activities-section">
+                <div class="activities-header">
+                    <h3 data-en="🎯 Things you could have done in that time" data-kr="🎯 그 시간에 할 수 있었던 것들">🎯 그 시간에 할 수 있었던 것들</h3>
+                    <button class="refresh-btn" onclick="refreshActivities()" title="다른 활동 보기">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="activities-grid" id="activitiesGrid">
+                    <!-- Activities will be populated here -->
+                </div>
+            </div>
+            
+            <div class="share-section">
+                <button class="back-btn" onclick="shareResult()" data-en="📤 Share Result" data-kr="📤 결과 공유하기">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                    </svg>
+                    결과 공유하기
+                </button>
+                <button class="back-btn" onclick="goBackToStart()" data-en="Back to Start" data-kr="처음으로">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    처음으로
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js configuration
+        let timeChart = null;
+
+        // Questions data
+        const questions = [
+            {
+                title: {
+                    en: "📱 SNS (Instagram, TikTok, Twitter)",
+                    kr: "📱 SNS (인스타그램, 틱톡, 트위터)"
+                },
+                subtitle: {
+                    en: "How many minutes did you spend on Instagram, TikTok, Twitter, etc.?",
+                    kr: "인스타그램, 틱톡, 트위터 등을 몇 분 정도 했나요?"
+                },
+                placeholder: {
+                    en: "Enter in minutes",
+                    kr: "분 단위로 입력해주세요"
+                }
+            },
+            {
+                title: {
+                    en: "📖 Webtoon/Web Novel/Community",
+                    kr: "📖 웹툰/웹소설/커뮤니티"
+                },
+                subtitle: {
+                    en: "Time spent on webtoons, web novels, communities (e.g., Reddit, Tumblr)?",
+                    kr: "웹툰, 웹소설, 커뮤니티(예: 디시, 루리웹) 등에서 보낸 시간은?"
+                },
+                placeholder: {
+                    en: "Enter in minutes",
+                    kr: "분 단위로 입력해주세요"
+                }
+            },
+            {
+                title: {
+                    en: "🎮 Games",
+                    kr: "🎮 게임"
+                },
+                subtitle: {
+                    en: "How much time did you spend playing games?",
+                    kr: "게임에 쓴 시간은 얼마나 되나요?"
+                },
+                placeholder: {
+                    en: "Enter in minutes",
+                    kr: "분 단위로 입력해주세요"
+                }
+            },
+            {
+                title: {
+                    en: "📺 Video Content",
+                    kr: "📺 영상 콘텐츠"
+                },
+                subtitle: {
+                    en: "How long have you been watching YouTube?",
+                    kr: "유튜브를 본 시간은?"
+                },
+                placeholder: {
+                    en: "Enter in minutes",
+                    kr: "분 단위로 입력해주세요"
+                }
+            },
+            {
+                title: {
+                    en: "😴 Staring into Space",
+                    kr: "😴 멍 때리기"
+                },
+                subtitle: {
+                    en: "Time spent doing nothing and staring into space?",
+                    kr: "아무것도 안 하고 멍 때린 시간은?"
+                },
+                placeholder: {
+                    en: "Enter in minutes",
+                    kr: "분 단위로 입력해주세요"
+                }
+            },
+            {
+                title: {
+                    en: "💬 Messenger",
+                    kr: "💬 메신저"
+                },
+                subtitle: {
+                    en: "Time spent on Whatsapp, Discord, etc.?",
+                    kr: "카톡/디스코드 등 메신저 대화에 쓴 시간은?"
+                },
+                placeholder: {
+                    en: "Enter in minutes",
+                    kr: "분 단위로 입력해주세요"
+                }
+            },
+            {
+                title: {
+                    en: "🛒 Online Shopping",
+                    kr: "🛒 온라인 쇼핑"
+                },
+                subtitle: {
+                    en: "Time spent browsing online shopping malls?",
+                    kr: "온라인 쇼핑 몰 둘러본 시간은?"
+                },
+                placeholder: {
+                    en: "Enter in minutes",
+                    kr: "분 단위로 입력해주세요"
+                }
+            },
+            {
+                title: {
+                    en: "⏰ Other Time Waste",
+                    kr: "⏰ 기타 시간 낭비"
+                },
+                subtitle: {
+                    en: "Any other time you think you wasted?",
+                    kr: "이 이외에 내가 날린것 같은 시간은?"
+                },
+                placeholder: {
+                    en: "Enter in minutes",
+                    kr: "분 단위로 입력해주세요"
+                }
+            }
+        ];
+
+        // User answers
+        let userAnswers = [0, 0, 0, 0, 0, 0, 0, 0];
+        let currentQuestion = 0;
+
+        // Activities data
+        const activities = [
+            {
+                name: {
+                    en: "Learn English Words",
+                    kr: "영어 단어 외우기"
+                },
+                rate: 1, // 1개/분
+                unit: {
+                    en: "words",
+                    kr: "개"
+                },
+                drip: {
+                    en: "Upgrade your English skills word by word! 📚",
+                    kr: "단어 하나씩 외우며 영어 실력 업그레이드! 📚"
+                }
+            },
+            {
+                name: {
+                    en: "Push-ups",
+                    kr: "팔굽혀펴기"
+                },
+                rate: 5, // 10개/분
+                unit: {
+                    en: "times",
+                    kr: "개"
+                },
+                drip: {
+                    en: "Build muscles and stay healthy! 💪",
+                    kr: "근육 만들며 건강 관리! 💪"
+                }
+            },
+            {
+                name: {
+                    en: "Walking",
+                    kr: "산책하기"
+                },
+                rate: 30/1, // 50m/분
+                unit: {
+                    en: "m",
+                    kr: "m"
+                },
+                drip: {
+                    en: "Breathe fresh air and stay healthy! 🚶‍♀️",
+                    kr: "신선한 공기 마시며 건강 관리! 🚶‍♀️"
+                }
+            },
+            {
+                name: {
+                    en: "Watch Drama",
+                    kr: "드라마 시청"
+                },
+                rate: 1/70, // 1편/30분
+                unit: {
+                    en: "episodes",
+                    kr: "편"
+                },
+                drip: {
+                    en: "Relieve stress with one drama episode! 🎬",
+                    kr: "드라마 한 편으로 스트레스 해소! 🎬"
+                }
+            },
+            {
+                name: {
+                    en: "Enjoy Memes",
+                    kr: "밈 감상"
+                },
+                rate: 1, // 1개/분
+                unit: {
+                    en: "memes",
+                    kr: "개"
+                },
+                drip: {
+                    en: "Relieve stress with one laugh! 😂",
+                    kr: "웃음 한 번에 스트레스 해소! 😂"
+                }
+            },
+            {
+                name: {
+                    en: "Read Books",
+                    kr: "책 읽기"
+                },
+                rate: 1, // 1쪽/분
+                unit: {
+                    en: "pages",
+                    kr: "쪽"
+                },
+                drip: {
+                    en: "Build knowledge and reading habits! 📖",
+                    kr: "지식 쌓으며 독서 습관 만들기! 📖"
+                }
+            },
+            {
+                name: {
+                    en: "Meditation",
+                    kr: "명상하기"
+                },
+                rate: 1/20, // 1회/15분
+                unit: {
+                    en: "sessions",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Find peace of mind! 🧘‍♀️",
+                    kr: "마음의 평화 찾기! 🧘‍♀️"
+                }
+            },
+            {
+                name: {
+                    en: "Make Coffee",
+                    kr: "커피 내리기"
+                },
+                rate: 1/15, // 1잔/15분
+                unit: {
+                    en: "cups",
+                    kr: "잔"
+                },
+                drip: {
+                    en: "Change mood with fragrant coffee! ☕",
+                    kr: "향긋한 커피로 기분 전환! ☕"
+                }
+            },
+            {
+                name: {
+                    en: "Charge Smartphone",
+                    kr: "스마트폰 충전"
+                },
+                rate: 1/1, // 1%/2분
+                unit: {
+                    en: "%",
+                    kr: "%"
+                },
+                drip: {
+                    en: "Fill battery one percent at a time! 🔋",
+                    kr: "배터리 한 퍼센트씩 채우기! 🔋"
+                }
+            },
+            {
+                name: {
+                    en: "Send Greetings to Friends",
+                    kr: "친구에게 안부 보내기"
+                },
+                rate: 1/15, // 1명/5분
+                unit: {
+                    en: "friends",
+                    kr: "명"
+                },
+                drip: {
+                    en: "Build relationships by communicating with friends! 💬",
+                    kr: "친구들과 소통하며 관계 쌓기! 💬"
+                }
+            },
+            {
+                name: {
+                    en: "Abs Workout",
+                    kr: "복근 운동"
+                },
+                rate: 1/10, // 1세트/10분
+                unit: {
+                    en: "sets",
+                    kr: "세트"
+                },
+                drip: {
+                    en: "Build abs and stay healthy! 🏋️‍♀️",
+                    kr: "복근 만들며 건강 관리! 🏋️‍♀️"
+                }
+            },
+            {
+                name: {
+                    en: "Write Blog",
+                    kr: "블로그 쓰기"
+                },
+                rate: 1/15, // 100자/10분
+                unit: {
+                    en: "100 chars",
+                    kr: "100자"
+                },
+                drip: {
+                    en: "Organize thoughts in writing and leave records! ✍️",
+                    kr: "생각을 글로 정리하며 기록 남기기! ✍️"
+                }
+            },
+            {
+                name: {
+                    en: "Sleep Cycle",
+                    kr: "수면 사이클"
+                },
+                rate: 1/90, // 1회/90분
+                unit: {
+                    en: "cycles",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Relieve fatigue with deep sleep! 😴",
+                    kr: "깊은 잠으로 피로 해소! 😴"
+                }
+            },
+            {
+                name: {
+                    en: "Self-Blame Loop",
+                    kr: "자책 루프"
+                },
+                rate: 999, // 무한
+                unit: {
+                    en: "times",
+                    kr: "번"
+                },
+                drip: {
+                    en: "Regret wasting time and waste more time! 😅",
+                    kr: "시간 낭비한 걸 후회하며 또 시간 낭비! 😅"
+                }
+            },
+            {
+                name: {
+                    en: "Listen to Music",
+                    kr: "노래 듣기"
+                },
+                rate: 1/4, // 1곡/4분
+                unit: {
+                    en: "songs",
+                    kr: "곡"
+                },
+                drip: {
+                    en: "Change mood with good music! 🎵",
+                    kr: "좋은 음악으로 기분 전환! 🎵"
+                }
+            },
+            {
+                name: {
+                    en: "Take a Bath",
+                    kr: "반신욕"
+                },
+                rate: 1/40, // 1회/30분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Relieve fatigue with warm water! 🛁",
+                    kr: "따뜻한 물로 피로 해소! 🛁"
+                }
+            },
+            {
+                name: {
+                    en: "Prepare Meal",
+                    kr: "식사 준비"
+                },
+                rate: 1/40, // 1끼/40분
+                unit: {
+                    en: "meals",
+                    kr: "끼"
+                },
+                drip: {
+                    en: "Change mood with delicious cooking! 👨‍🍳",
+                    kr: "맛있는 요리로 기분 전환! 👨‍🍳"
+                }
+            },
+            {
+                name: {
+                    en: "Do Laundry",
+                    kr: "세탁기 돌리기"
+                },
+                rate: 1/70, // 1회/60분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Change mood with clean clothes! 👕",
+                    kr: "깨끗한 옷으로 기분 전환! 👕"
+                }
+            },
+            {
+                name: {
+                    en: "Clean Room",
+                    kr: "방 청소"
+                },
+                rate: 1/60, // 1회/45분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Change mood with clean space! 🧹",
+                    kr: "깨끗한 공간으로 기분 전환! 🧹"
+                }
+            },
+            {
+                name: {
+                    en: "Water Plants",
+                    kr: "화분 물 주기"
+                },
+                rate: 1/20, // 1회/10분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Grow together with plants! 🌱",
+                    kr: "식물과 함께 성장하기! 🌱"
+                }
+            },
+            {
+                name: {
+                    en: "Stretching",
+                    kr: "스트레칭"
+                },
+                rate: 1/5, // 1세트/5분
+                unit: {
+                    en: "sets",
+                    kr: "세트"
+                },
+                drip: {
+                    en: "Stay healthy with flexible body! 🤸‍♀️",
+                    kr: "유연한 몸으로 건강 관리! 🤸‍♀️"
+                }
+            },
+            {
+                name: {
+                    en: "Make Bed",
+                    kr: "이불 개기"
+                },
+                rate: 1/10, // 1회/5분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Change mood with neat bedroom! 🛏️",
+                    kr: "깔끔한 침실로 기분 전환! 🛏️"
+                }
+            },
+            {
+                name: {
+                    en: "Edit Resume",
+                    kr: "이력서 수정"
+                },
+                rate: 1/60, // 1회/60분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Plan future with job preparation! 📄",
+                    kr: "취업 준비로 미래 설계! 📄"
+                }
+            },
+            {
+                name: {
+                    en: "Write Bucket List",
+                    kr: "버킷리스트 쓰기"
+                },
+                rate: 1/30, // 1장/30분
+                unit: {
+                    en: "pages",
+                    kr: "장"
+                },
+                drip: {
+                    en: "Get motivated by organizing dreams and goals! 📝",
+                    kr: "꿈과 목표를 정리하며 동기부여! 📝"
+                }
+            },
+            {
+                name: {
+                    en: "Organize Account",
+                    kr: "계좌 정리"
+                },
+                rate: 1/20, // 1회/20분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Secure future with financial management! 💰",
+                    kr: "재정 관리로 안정적인 미래! 💰"
+                }
+            },
+            {
+                name: {
+                    en: "Call Family",
+                    kr: "가족에게 전화"
+                },
+                rate: 1/20, // 1통/10분
+                unit: {
+                    en: "calls",
+                    kr: "통"
+                },
+                drip: {
+                    en: "Share love by communicating with family! 👨‍👩‍👧‍👦",
+                    kr: "가족과 소통하며 사랑 나누기! 👨‍👩‍👧‍👦"
+                }
+            },
+            {
+                name: {
+                    en: "Learn by Googling",
+                    kr: "구글링으로 지식 쌓기"
+                },
+                rate: 1/20, // 1주제/15분
+                unit: {
+                    en: "topics",
+                    kr: "주제"
+                },
+                drip: {
+                    en: "Build knowledge by satisfying curiosity! 🔍",
+                    kr: "호기심을 채우며 지식 쌓기! 🔍"
+                }
+            },
+            {
+                name: {
+                    en: "Stare at Wall",
+                    kr: "벽 바라보기"
+                },
+                rate: 1, // 1회/분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Relieve stress by spacing out! 🧱",
+                    kr: "멍때리며 스트레스 해소! 🧱"
+                }
+            },
+            {
+                name: {
+                    en: "Draw Doodles",
+                    kr: "그림 낙서하기"
+                },
+                rate: 1/30, // 1장/20분
+                unit: {
+                    en: "drawings",
+                    kr: "장"
+                },
+                drip: {
+                    en: "Develop artistic sense with creativity! 🎨",
+                    kr: "창의력을 발휘하며 예술 감각 키우기! 🎨"
+                }
+            },
+            {
+                name: {
+                    en: "Look Out Window",
+                    kr: "창밖 보기"
+                },
+                rate: 1/10, // 1회/10분
+                unit: {
+                    en: "times",
+                    kr: "회"
+                },
+                drip: {
+                    en: "Find peace of mind by looking at nature! 🌳",
+                    kr: "자연을 바라보며 마음의 평화 찾기! 🌳"
+                }
+            }
+        ];
+
+        // Start questions
+        function startQuestions() {
+            const startContainer = document.querySelector('.start-container');
+            const questionsContainer = document.querySelector('.questions-container');
+            
+            // Reset questions container state first
+            questionsContainer.classList.remove('slide-out');
+            
+            // Slide start container out to the left
+            startContainer.classList.add('slide-out');
+            
+            // After start slides out, slide questions in from the right
+            setTimeout(() => {
+                questionsContainer.classList.add('slide-in');
+                showQuestion(0);
+            }, 200);
+        }
+
+        // Show question
+        function showQuestion(questionIndex) {
+            const question = questions[questionIndex];
+            const currentLanguage = document.getElementById('languageSelect').value;
+            
+            document.getElementById('questionTitle').textContent = question.title[currentLanguage];
+            document.getElementById('questionSubtitle').textContent = question.subtitle[currentLanguage];
+            document.getElementById('questionInput').placeholder = question.placeholder[currentLanguage];
+            document.getElementById('questionInput').value = '';
+            
+            // Update progress bar
+            const progress = ((questionIndex + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            // Focus on input
+            document.getElementById('questionInput').focus();
+        }
+
+        // Next question
+        function nextQuestion() {
+            const input = document.getElementById('questionInput');
+            const value = parseInt(input.value) || 0;
+            
+            if (value === 0) {
+                alert('시간을 입력해주세요!');
+                return;
+            }
+            
+            // Save answer
+            userAnswers[currentQuestion] = value;
+            
+            // Move to next question or show results
+            currentQuestion++;
+            
+            if (currentQuestion < questions.length) {
+                showQuestion(currentQuestion);
+            } else {
+                // All questions answered, show results
+                showResults();
+            }
+        }
+
+        // Skip question (set to 0)
+        function skipQuestion() {
+            // Save answer as 0
+            userAnswers[currentQuestion] = 0;
+            
+            // Move to next question or show results
+            currentQuestion++;
+            
+            if (currentQuestion < questions.length) {
+                showQuestion(currentQuestion);
+            } else {
+                // All questions answered, show results
+                showResults();
+            }
+        }
+
+        // Show results
+        function showResults() {
+            const questionsContainer = document.querySelector('.questions-container');
+            const resultsSection = document.getElementById('resultsSection');
+            
+            // Slide questions out to the left
+            questionsContainer.classList.remove('slide-in');
+            questionsContainer.classList.add('slide-out');
+            
+            // After questions slides out, slide results in from the right
+            setTimeout(() => {
+                resultsSection.classList.add('slide-in');
+                calculateAndDisplayResults();
+                
+                // Hide language selector in results
+                const languageSelector = document.querySelector('.language-selector');
+                if (languageSelector) {
+                    languageSelector.style.display = 'none';
+                }
+            }, 200);
+        }
+
+        // Calculate and display results
+        function calculateAndDisplayResults() {
+            const totalTime = userAnswers.reduce((sum, time) => sum + time, 0);
+            
+            // Save data
+            saveData(userAnswers[0], userAnswers[1], userAnswers[2], userAnswers[3], userAnswers[4], userAnswers[5], userAnswers[6], userAnswers[7], totalTime);
+            
+            // Display total time
+            updateTotalTimeDisplay(totalTime);
+
+            // Calculate and display score
+            calculateAndDisplayScore(totalTime);
+
+            // Create chart with all 8 categories
+            createChart(userAnswers[0], userAnswers[1], userAnswers[2], userAnswers[3], userAnswers[4], userAnswers[5], userAnswers[6], userAnswers[7]);
+
+            // Show activities
+            showActivities(totalTime);
+        }
+
+        // Calculate and display score
+        function calculateAndDisplayScore(totalTime) {
+            // Calculate score: (1 - wastedTime / 720) * 100, rounded to integer
+            const score = Math.round((1 - totalTime / 720) * 100);
+            const clampedScore = Math.max(0, Math.min(100, score)); // Ensure score is between 0-100
+            
+            // Get score comment based on score range
+            const scoreComment = getScoreComment(clampedScore);
+            
+            // Display score and comment
+            const currentLanguage = document.getElementById('languageSelect').value;
+            const scoreText = currentLanguage === 'kr' ? `${clampedScore}점` : `${clampedScore} points`;
+            
+            document.getElementById('scoreDisplay').textContent = scoreText;
+            document.getElementById('scoreComment').textContent = scoreComment;
+            
+            // Update score color based on score
+            updateScoreColor(clampedScore);
+        }
+
+        // Get score comment based on score range
+        function getScoreComment(score) {
+            const currentLanguage = document.getElementById('languageSelect').value;
+            
+            if (score >= 90) {
+                return currentLanguage === 'kr' ? 
+                    "👑 지립니다 형님 시간을 알차게 쓰시네요" : 
+                    "👑 Damn, you're really efficient with your time!";
+            } else if (score >= 75) {
+                return currentLanguage === 'kr' ? 
+                    "🧠 꽤 알차게 살았네요. 이 정도면 대단합니다!" : 
+                    "🧠 Pretty productive day! This is impressive!";
+            } else if (score >= 50) {
+                return currentLanguage === 'kr' ? 
+                    "🙂 쓸데없는 것도 했지만... 괜찮아요, 사람 사는 거죠" : 
+                    "🙂 Did some useless stuff but... it's okay, that's life";
+            } else if (score >= 30) {
+                return currentLanguage === 'kr' ? 
+                    "😅 조금은 과하게 흘렸네요. 내일은 조금만 아껴봐요" : 
+                    "😅 Wasted a bit too much. Try to save some time tomorrow";
+            } else if (score >= 10) {
+                return currentLanguage === 'kr' ? 
+                    "🫠 시간이 모래처럼… 어디로 간 거죠?" : 
+                    "🫠 Time slipped through like sand... where did it go?";
+            } else {
+                return currentLanguage === 'kr' ? 
+                    "💀 하루를 통째로 소각했습니다. 리셋이 필요합니다" : 
+                    "💀 Completely incinerated the whole day. Need a reset";
+            }
+        }
+
+        // Update score color based on score
+        function updateScoreColor(score) {
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            
+            // Calculate color based on score (0 = red, 100 = green)
+            let r, g, b;
+            
+            if (score <= 50) {
+                // Red to Yellow (0-50)
+                r = 255;
+                g = Math.round((score / 50) * 255);
+                b = 0;
+            } else {
+                // Yellow to Green (50-100)
+                r = Math.round(((100 - score) / 50) * 255);
+                g = 255;
+                b = 0;
+            }
+            
+            const color = `rgb(${r}, ${g}, ${b})`;
+            const shadowColor = `rgba(${r}, ${g}, ${b}, 0.3)`;
+            
+            scoreDisplay.style.color = color;
+            scoreDisplay.style.boxShadow = `0 4px 15px ${shadowColor}`;
+        }
+
+        // Update total time display with language support
+        function updateTotalTimeDisplay(totalTime) {
+            const currentLanguage = document.getElementById('languageSelect').value;
+            const timeUnit = currentLanguage === 'kr' ? '분' : 'min';
+            document.getElementById('totalTimeDisplay').textContent = `${totalTime}${timeUnit}`;
+        }
+
+        // Load saved data from localStorage
+        function loadSavedData() {
+            const savedData = localStorage.getItem('timeWasteData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                userAnswers = [
+                    data.snsTime || 0, 
+                    data.webtoonTime || 0, 
+                    data.gameTime || 0, 
+                    data.videoTime || 0, 
+                    data.blankTime || 0, 
+                    data.messengerTime || 0, 
+                    data.shoppingTime || 0, 
+                    data.otherTime || 0
+                ];
+            }
+        }
+
+        // Save data to localStorage
+        function saveData(snsTime, webtoonTime, gameTime, videoTime, blankTime, messengerTime, shoppingTime, otherTime, totalTime) {
+            const data = {
+                snsTime: snsTime,
+                webtoonTime: webtoonTime,
+                gameTime: gameTime,
+                videoTime: videoTime,
+                blankTime: blankTime,
+                messengerTime: messengerTime,
+                shoppingTime: shoppingTime,
+                otherTime: otherTime,
+                totalTime: totalTime
+            };
+            localStorage.setItem('timeWasteData', JSON.stringify(data));
+        }
+
+        // Calculate time and show results (legacy function - not used anymore)
+        function calculateTime() {
+            // This function is kept for compatibility but not used in the new flow
+        }
+
+        // Create donut chart
+        function createChart(snsTime, webtoonTime, gameTime, videoTime, blankTime, messengerTime, shoppingTime, otherTime) {
+            const ctx = document.getElementById('timeChart').getContext('2d');
+            
+            // Destroy existing chart
+            if (timeChart) {
+                timeChart.destroy();
+            }
+
+            const currentLanguage = document.getElementById('languageSelect').value;
+            const labels = currentLanguage === 'kr' 
+                ? ['📱 SNS', '📖 웹툰/커뮤니티', '🎮 게임', '📺 영상', '😴 멍때리기', '💬 메신저', '🛒 쇼핑', '⏰ 기타']
+                : ['📱 SNS', '📖 Webtoon/Community', '🎮 Games', '📺 Video', '😴 Staring', '💬 Messenger', '🛒 Shopping', '⏰ Others'];
+
+            timeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: [snsTime, webtoonTime, gameTime, videoTime, blankTime, messengerTime, shoppingTime, otherTime],
+                        backgroundColor: [
+                            'rgba(136, 158, 255, 0.8)',
+                            'rgba(196, 138, 255, 0.8)',
+                            'rgba(255, 107, 107, 0.8)',
+                            'rgba(255, 193, 7, 0.8)',
+                            'rgba(108, 117, 125, 0.8)',
+                            'rgba(40, 167, 69, 0.8)',
+                            'rgba(220, 53, 69, 0.8)',
+                            'rgba(23, 162, 184, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(136, 158, 255, 1)',
+                            'rgba(196, 138, 255, 1)',
+                            'rgba(255, 107, 107, 1)',
+                            'rgba(255, 193, 7, 1)',
+                            'rgba(108, 117, 125, 1)',
+                            'rgba(40, 167, 69, 1)',
+                            'rgba(220, 53, 69, 1)',
+                            'rgba(23, 162, 184, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: true,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.parsed}분 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Show activities
+        function showActivities(totalTime) {
+            const activitiesGrid = document.getElementById('activitiesGrid');
+            activitiesGrid.innerHTML = '';
+
+            // Shuffle activities and take first 3
+            const shuffledActivities = [...activities].sort(() => Math.random() - 0.5).slice(0, 3);
+
+            const currentLanguage = document.getElementById('languageSelect').value;
+
+            shuffledActivities.forEach(activity => {
+                const count = Math.floor(totalTime * activity.rate);
+                const activityItem = document.createElement('div');
+                activityItem.className = 'activity-item fade-in';
+                activityItem.innerHTML = `
+                    <div class="activity-name">${activity.name[currentLanguage]}</div>
+                    <div class="activity-count">${count} ${activity.unit[currentLanguage]}</div>
+                    <div class="activity-drip">${activity.drip[currentLanguage]}</div>
+                `;
+                activitiesGrid.appendChild(activityItem);
+            });
+        }
+
+        // Refresh activities with fade effect
+        function refreshActivities() {
+            const activitiesGrid = document.getElementById('activitiesGrid');
+            const activityItems = activitiesGrid.querySelectorAll('.activity-item');
+            
+            // Fade out current activities
+            activityItems.forEach(item => {
+                item.classList.add('fade-out');
+            });
+            
+            // After fade out, show new activities
+            setTimeout(() => {
+                const totalTime = userAnswers.reduce((sum, time) => sum + time, 0);
+                showActivities(totalTime);
+            }, 300);
+        }
+
+        // Go back to questions (from results) or to start (from questions)
+        function goBack() {
+            const questionsContainer = document.querySelector('.questions-container');
+            const resultsSection = document.getElementById('resultsSection');
+            
+            // Check if we're in results view
+            if (resultsSection.classList.contains('slide-in')) {
+                // Go back from results to questions
+                resultsSection.classList.remove('slide-in');
+                resultsSection.classList.add('slide-out');
+                
+                setTimeout(() => {
+                    questionsContainer.classList.remove('slide-out');
+                    questionsContainer.classList.add('slide-in');
+                    showQuestion(currentQuestion - 1); // Show last question
+                }, 400);
+                
+                setTimeout(() => {
+                    resultsSection.classList.remove('slide-out');
+                }, 800);
+                
+                // Show language selector when leaving results
+                const languageSelector = document.querySelector('.language-selector');
+                if (languageSelector) {
+                    languageSelector.style.display = 'block';
+                }
+            } else {
+                // Go back from questions to start
+                goBackToStart();
+            }
+        }
+
+        // Share result function
+        async function shareResult() {
+            const totalTime = userAnswers.reduce((sum, time) => sum + time, 0);
+            const shareUrl = `${window.location.origin}${window.location.pathname.replace('time.html', 'result.html')}?wasted=${totalTime}`;
+            
+            if (navigator.share) {
+                // Use Web Share API if available
+                try {
+                    await navigator.share({
+                        title: 'My Time Waste Result',
+                        text: `I wasted ${totalTime} minutes today! Check out my score!`,
+                        url: shareUrl
+                    });
+                } catch (err) {
+                    // Fallback to clipboard
+                    copyToClipboard(shareUrl);
+                }
+            } else {
+                // Fallback to clipboard
+                copyToClipboard(shareUrl);
+            }
+        }
+
+        // Copy to clipboard function
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const currentLanguage = document.getElementById('languageSelect').value;
+                const message = currentLanguage === 'kr' ? '링크가 클립보드에 복사되었습니다!' : 'Link copied to clipboard!';
+                alert(message);
+            }).catch(() => {
+                const currentLanguage = document.getElementById('languageSelect').value;
+                const message = currentLanguage === 'kr' ? '링크 복사에 실패했습니다.' : 'Failed to copy link.';
+                alert(message);
+            });
+        }
+
+        // Go back to start
+        function goBackToStart() {
+            const startContainer = document.querySelector('.start-container');
+            const questionsContainer = document.querySelector('.questions-container');
+            const resultsSection = document.getElementById('resultsSection');
+            
+            // Check if we're in results view
+            if (resultsSection.classList.contains('slide-in')) {
+                // Slide results out to the right first
+                resultsSection.classList.remove('slide-in');
+                resultsSection.classList.add('slide-out');
+                
+                // After results slides out, slide start back in from the left
+                setTimeout(() => {
+                    startContainer.classList.remove('slide-out');
+                }, 400);
+                
+                // Clean up the slide-out class after animation completes
+                setTimeout(() => {
+                    resultsSection.classList.remove('slide-out');
+                }, 600);
+                
+                // Show language selector when leaving results
+                const languageSelector = document.querySelector('.language-selector');
+                if (languageSelector) {
+                    languageSelector.style.display = 'block';
+                }
+            } else {
+                // Slide questions out to the left
+                questionsContainer.classList.remove('slide-in');
+                questionsContainer.classList.add('slide-out');
+                
+                // After questions slides out, slide start back in from the left
+                setTimeout(() => {
+                    startContainer.classList.remove('slide-out');
+                }, 400);
+                
+                // Clean up the slide-out class after animation completes
+                setTimeout(() => {
+                    questionsContainer.classList.remove('slide-out');
+                }, 600);
+            }
+            
+            // Reset state
+            currentQuestion = 0;
+            userAnswers = [0, 0, 0, 0, 0, 0, 0, 0];
+            
+            // Reset input field
+            const questionInput = document.getElementById('questionInput');
+            if (questionInput) {
+                questionInput.value = '';
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedData();
+            initializeSiteFeatures();
+            
+            // Mobile dropdown positioning
+            const languageSelect = document.getElementById('languageSelect');
+            if (languageSelect) {
+                languageSelect.addEventListener('focus', function() {
+                    if (window.innerWidth <= 768) {
+                        // Check if dropdown would go below viewport
+                        const rect = this.getBoundingClientRect();
+                        const dropdownHeight = 150; // Approximate dropdown height
+                        const viewportHeight = window.innerHeight;
+                        
+                        if (rect.bottom + dropdownHeight > viewportHeight) {
+                            // Move the selector up if dropdown would be cut off
+                            const languageSelector = document.querySelector('.language-selector');
+                            languageSelector.style.bottom = 'auto';
+                            languageSelector.style.top = '20px';
+                        }
+                    }
+                });
+                
+                languageSelect.addEventListener('blur', function() {
+                    if (window.innerWidth <= 768) {
+                        // Reset position when dropdown closes
+                        const languageSelector = document.querySelector('.language-selector');
+                        languageSelector.style.bottom = '20px';
+                        languageSelector.style.top = 'auto';
+                    }
+                });
+            }
+        });
+
+        // Initialize site features (dark mode, language, hamburger menu)
+        function initializeSiteFeatures() {
+            // Check local storage for dark mode setting
+            if (localStorage.getItem('darkMode') !== 'disabled') {
+                document.body.classList.add('dark-mode');
+                document.documentElement.style.setProperty('--bg-image', "url('back2.png')");
+            }
+
+            // Load saved language preference
+            const savedLanguage = localStorage.getItem('language') || 'kr';
+            document.getElementById('languageSelect').value = savedLanguage;
+            changeLanguage();
+            
+            // Set initial dark mode toggle button text
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (isDarkMode) {
+                darkModeToggle.innerHTML = savedLanguage === 'kr' ? '🌕 라이트 모드' : '🌕 Light Mode';
+            }
+
+            // Hamburger menu functionality
+            const hamburger = document.getElementById('hamburger');
+            const navLinks = document.getElementById('navLinks');
+            
+            hamburger.addEventListener('click', function() {
+                hamburger.classList.toggle('active');
+                navLinks.classList.toggle('active');
+            });
+            
+            // Close menu when clicking on a link
+            document.querySelectorAll('.navbar .links a').forEach(link => {
+                link.addEventListener('click', () => {
+                    hamburger.classList.remove('active');
+                    navLinks.classList.remove('active');
+                });
+            });
+
+            // Dark mode toggle
+            darkModeToggle.addEventListener('click', function() {
+                const darkModeEnabled = document.body.classList.toggle('dark-mode');
+                localStorage.setItem('darkMode', darkModeEnabled ? 'enabled' : 'disabled');
+                
+                // Change background based on mode
+                if (darkModeEnabled) {
+                    document.documentElement.style.setProperty('--bg-image', "url('back2.png')");
+                } else {
+                    document.documentElement.style.setProperty('--bg-image', "url('back1.png')");
+                }
+                
+                // Update button text based on current language
+                const currentLanguage = document.getElementById('languageSelect').value;
+                if (darkModeEnabled) {
+                    this.innerHTML = currentLanguage === 'kr' ? '🌕 라이트 모드' : '🌕 Light Mode';
+                } else {
+                    this.innerHTML = currentLanguage === 'kr' ? '🌙 다크 모드' : '🌙 Dark Mode';
+                }
+            });
+        }
+
+        // Language change function
+        function changeLanguage() {
+            const language = document.getElementById('languageSelect').value;
+            localStorage.setItem('language', language);
+            
+            // Update all elements with data attributes
+            const elements = document.querySelectorAll('[data-en][data-kr]');
+            elements.forEach(element => {
+                if (language === 'kr') {
+                    element.innerHTML = element.getAttribute('data-kr');
+                } else {
+                    element.innerHTML = element.getAttribute('data-en');
+                }
+            });
+            
+            // Update dark mode toggle button text
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            if (isDarkMode) {
+                darkModeToggle.innerHTML = language === 'kr' ? '🌕 라이트 모드' : '🌕 Light Mode';
+            } else {
+                darkModeToggle.innerHTML = language === 'kr' ? '🌙 다크 모드' : '🌙 Dark Mode';
+            }
+
+            // Update current question if in questions view
+            const questionsContainer = document.querySelector('.questions-container');
+            if (questionsContainer && questionsContainer.classList.contains('slide-in')) {
+                showQuestion(currentQuestion);
+            }
+
+            // Update activities if in results view
+            const resultsSection = document.getElementById('resultsSection');
+            if (resultsSection && resultsSection.classList.contains('slide-in')) {
+                const totalTime = userAnswers.reduce((sum, time) => sum + time, 0);
+                updateTotalTimeDisplay(totalTime);
+                calculateAndDisplayScore(totalTime);
+                showActivities(totalTime);
+                
+                // Update chart labels
+                createChart(userAnswers[0], userAnswers[1], userAnswers[2], userAnswers[3], userAnswers[4], userAnswers[5], userAnswers[6], userAnswers[7]);
+            }
+        }
+
+        // Add enter key support
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const questionsContainer = document.querySelector('.questions-container');
+                if (questionsContainer.classList.contains('slide-in')) {
+                    nextQuestion();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

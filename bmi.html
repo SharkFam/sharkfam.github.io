@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>체중 환산 계산기</title>
+    <style>
+        /* ====== index.html 공통 네비바/언어/다크모드/반응형 스타일 ====== */
+        body {
+            background: var(--bg-image, url('back1.png')) no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            overflow-x: hidden;
+            transition: background 0.3s ease;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        .navbar .links {
+            display: flex;
+        }
+        .navbar a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        .navbar #darkModeToggle {
+            cursor: pointer;
+            padding: 14px 20px;
+        }
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 10px;
+        }
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 80px 20px 20px;
+            box-sizing: border-box;
+        }
+        .language-selector {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .language-selector select {
+            padding: 16px 24px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .language-selector select:hover {
+            border-color: #889eff;
+            box-shadow: 0 2px 8px rgba(136, 158, 255, 0.3);
+        }
+        .dark-mode {
+            color: #e0e0e0;
+        }
+        .dark-mode .navbar {
+            background-color: #1c1c1c;
+        }
+        .dark-mode .navbar a {
+            color: #e0e0e0;
+        }
+        .dark-mode .navbar a:hover {
+            background-color: #333;
+        }
+        .dark-mode .language-selector select {
+            background: #333;
+            color: #e0e0e0;
+            border-color: #555;
+        }
+        .dark-mode .language-selector select:hover {
+            border-color: #a8edea;
+            box-shadow: 0 2px 8px rgba(168, 237, 234, 0.3);
+        }
+        .dark-mode .container {
+            background: rgba(30,30,30,0.15);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        .dark-mode .container label,
+        .dark-mode .container .unit,
+        .dark-mode .container .fun-fact,
+        .dark-mode .container .fun-fact h3,
+        .dark-mode .container .fun-fact p,
+        .dark-mode .container .error,
+        .dark-mode .container .subtitle {
+            color: #eee !important;
+        }
+        .dark-mode .container input[type="text"],
+        .dark-mode .container input[type="number"] {
+            color: #fff;
+            background: rgba(40,40,40,0.25);
+            border: 1.2px solid #a8edea;
+        }
+        .dark-mode .container input[type="text"]::placeholder,
+        .dark-mode .container input[type="number"]::placeholder {
+            color: #bbb;
+        }
+        .dark-mode .container button {
+            color: #fff;
+        }
+        .dark-mode .container .error {
+            color: #ffb3b3 !important;
+        }
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+            .navbar .links {
+                position: fixed;
+                left: -100%;
+                top: 60px;
+                flex-direction: column;
+                background-color: #333;
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                box-shadow: 0 10px 27px rgba(0, 0, 0, 0.05);
+            }
+            .navbar .links.active {
+                left: 0;
+            }
+            .navbar .links a {
+                margin: 0;
+                padding: 20px;
+                border-bottom: 1px solid #555;
+            }
+            .main-content {
+                padding: 80px 10px 10px;
+                height: auto;
+                min-height: 100vh;
+            }
+            .language-selector {
+                bottom: 10px;
+                right: 10px;
+            }
+            .language-selector select {
+                padding: 12px 16px;
+                font-size: 16px;
+                min-width: 100px;
+                max-height: 150px;
+            }
+        }
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 70px 2px 2px;
+            }
+            .language-selector select {
+                font-size: 15px;
+                padding: 10px 12px;
+            }
+        }
+        /* ====== 기존 bmi.html 리퀴드 글래스 스타일(컨테이너 등) ====== */
+        .container {
+            background: rgba(255,255,255,0.28);
+            box-shadow: 0 8px 32px 0 rgba(31,38,135,0.18);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 24px;
+            border: 1.5px solid rgba(255,255,255,0.4);
+            max-width: 420px;
+            width: 100%;
+            padding: 32px 20px;
+            margin: 32px auto;
+            text-align: center;
+            transition: box-shadow 0.3s;
+        }
+        h1 {
+            font-size: 2.1rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #889eff 0%, #c48aff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 22px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 600;
+            color: #333;
+        }
+        /* 입력란 텍스트 색상 명확하게(라이트/다크모드 모두) */
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            color: #222 !important; /* 라이트 모드에서 더 밝게 */
+            background: rgba(255,255,255,0.18);
+            border: 1.2px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            font-size: 16px;
+            box-sizing: border-box;
+            padding: 13px;
+        }
+        input[type="text"]::placeholder, input[type="number"]::placeholder {
+            color: #888 !important; /* 라이트 모드에서 placeholder도 밝게 */
+        }
+        .dark-mode .container input[type="text"],
+        .dark-mode .container input[type="number"] {
+            color: #fff !important;
+            background: rgba(40,40,40,0.25);
+            border: 1.2px solid #a8edea;
+        }
+        .dark-mode .container input[type="text"]::placeholder,
+        .dark-mode .container input[type="number"]::placeholder {
+            color: #bbb !important;
+        }
+        .unit {
+            color: #666;
+            font-size: 0.88rem;
+            margin-top: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(45deg, #889eff 0%, #c48aff 100%);
+            color: white;
+            font-weight: 600;
+            border-radius: 18px;
+            border: none;
+            box-shadow: 0 2px 8px rgba(136,158,255,0.08);
+            font-size: 17px;
+            margin-top: 10px;
+            transition: box-shadow 0.3s, transform 0.2s, background 0.3s;
+        }
+        button:hover {
+            box-shadow: 0 6px 24px rgba(136,158,255,0.18);
+            transform: translateY(-2px) scale(1.03);
+            background: linear-gradient(45deg, #c48aff 0%, #889eff 100%);
+        }
+        .error {
+            color: #ff4757;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            display: none;
+        }
+        .fun-fact {
+            border-left: 4px solid #c48aff;
+            background: rgba(196, 138, 255, 0.08);
+        }
+        .fun-fact h3 {
+            color: #333;
+            margin-bottom: 7px;
+            font-size: 0.98rem;
+        }
+        .fun-fact p {
+            color: #666;
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+        /* 라이트 모드(기본)에서 컨테이너 내부 모든 텍스트를 어둡게 (우선순위 최상) */
+        .container * {
+            color: #222 !important;
+        }
+        /* 기존 텍스트 컬러 선언 제거(아래에서 강제 지정) */
+        h1, .subtitle, label, .unit, .fun-fact h3, .fun-fact p, .error {
+            color: inherit !important;
+        }
+        /* h1 그라데이션 복구 */
+        .container h1 {
+            font-size: 2.1rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #889eff 0%, #c48aff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        /* 라이트 모드에서 주요 텍스트만 어둡게 */
+        body:not(.dark-mode) .container .subtitle,
+        body:not(.dark-mode) .container label,
+        body:not(.dark-mode) .container .unit,
+        body:not(.dark-mode) .container .fun-fact h3,
+        body:not(.dark-mode) .container .fun-fact p,
+        body:not(.dark-mode) .container .error {
+            color: #222 !important;
+        }
+        /* 다크모드에서 주요 텍스트만 밝게 */
+        body.dark-mode .container .subtitle,
+        body.dark-mode .container label,
+        body.dark-mode .container .unit,
+        body.dark-mode .container .fun-fact h3,
+        body.dark-mode .container .fun-fact p,
+        body.dark-mode .container .error {
+            color: #eee !important;
+        }
+        body.dark-mode .container .error {
+            color: #ffb3b3 !important;
+        }
+        .container .error {
+            color: #ff4757 !important;
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 18px 6px;
+                margin: 8px;
+            }
+            h1 {
+                font-size: 1.3rem;
+            }
+            .subtitle {
+                font-size: 0.95rem;
+            }
+            button {
+                font-size: 15px;
+                padding: 10px;
+            }
+            input[type="text"], input[type="number"] {
+                font-size: 15px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="links" id="navLinks">
+            <a href="index.html" data-en="Home" data-kr="홈">Home</a>
+            <a href="time.html" data-en="Time Waste Calculator" data-kr="시간 낭비 계산기">Time Waste Calculator</a>
+            <a href="bmi.html" data-en="What's my weight?" data-kr="내 체중은?">내 체중은?</a>
+            <a href="fact.html" data-en="Did you know?" data-kr="알고 계셨나요?">Did you know?</a>
+            <a href="yesno.html" data-en="Yes or No" data-kr="예 또는 아니오">Yes or No</a>
+            <a href="trash.html" data-en="Trash Name Generator" data-kr="쓰레기 이름 생성기">Trash Name Generator</a>
+        </div>
+        <a href="#" id="darkModeToggle" data-en="🌙 Dark Mode" data-kr="🌙 다크 모드">🌙 Dark Mode</a>
+    </div>
+    <div class="main-content" style="display:flex;justify-content:center;align-items:center;min-height:100vh;padding-top:80px;">
+        <div class="container">
+            <h1 data-en="BMI & Weight Converter" data-kr="체중 환산 계산기">체중 환산 계산기</h1>
+            <p class="subtitle" data-en="Convert your weight into fun food units! 🍔" data-kr="당신의 몸무게를 재미있는 음식 단위로 환산해보세요! 🍔">당신의 몸무게를 재미있는 음식 단위로 환산해보세요! 🍔</p>
+            <form id="bmiForm">
+                <div class="form-group">
+                    <label for="name" data-en="Name" data-kr="이름">이름</label>
+                    <input type="text" id="name" data-en-placeholder="Enter your name (optional)" data-kr-placeholder="이름을 입력하세요" placeholder="이름을 입력하세요" maxlength="20">
+                    <div class="unit" data-en="Leave blank for 'Anonymous'" data-kr="빈칸으로 두면 '익명'으로 처리됩니다">빈칸으로 두면 "익명"으로 처리됩니다</div>
+                </div>
+                <div class="form-group">
+                    <label for="height" data-en="Height" data-kr="키">키</label>
+                    <input type="number" id="height" data-en-placeholder="Enter your height" data-kr-placeholder="키를 입력하세요" placeholder="키를 입력하세요" min="100" max="250" step="0.1">
+                    <div class="unit" data-en="Unit: cm (100~250)" data-kr="단위: cm (100~250)">단위: cm (100~250)</div>
+                    <div class="error" id="heightError" data-en="Please enter a valid height (100~250cm)" data-kr="올바른 키를 입력해주세요 (100~250cm)">올바른 키를 입력해주세요 (100~250cm)</div>
+                </div>
+                <div class="form-group">
+                    <label for="weight" data-en="Weight" data-kr="몸무게">몸무게</label>
+                    <input type="number" id="weight" data-en-placeholder="Enter your weight" data-kr-placeholder="몸무게를 입력하세요" placeholder="몸무게를 입력하세요" min="30" max="300" step="0.1">
+                    <div class="unit" data-en="Unit: kg (30~300)" data-kr="단위: kg (30~300)">단위: kg (30~300)</div>
+                    <div class="error" id="weightError" data-en="Please enter a valid weight (30~300kg)" data-kr="올바른 몸무게를 입력해주세요 (30~300kg)">올바른 몸무게를 입력해주세요 (30~300kg)</div>
+                </div>
+                <button type="submit" data-en="See Result 🚀" data-kr="결과 보기 🚀">결과 보기 🚀</button>
+            </form>
+            <div class="fun-fact">
+                <h3 data-en="💡 Fun Fact" data-kr="💡 재미있는 사실">💡 재미있는 사실</h3>
+                <p data-en="The average adult male weighs about 70kg, which is about 378 bulgogi burgers! 🍔" data-kr="평균 성인 남성의 몸무게는 약 70kg으로, 이는 불고기버거 약 378개와 같습니다! 🍔">평균 성인 남성의 몸무게는 약 70kg으로, 이는 불고기버거 약 378개와 같습니다! 🍔</p>
+            </div>
+        </div>
+    </div>
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <select id="languageSelect" onchange="changeLanguage()">
+            <option value="en">English</option>
+            <option value="kr">한국어</option>
+        </select>
+    </div>
+    <script>
+        // 즉시 다크모드 설정 적용 (페이지 로드 전)
+        (function() {
+            if (localStorage.getItem('darkMode') !== 'disabled') {
+                document.documentElement.style.setProperty('--bg-image', "url('back2.png')");
+                document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.style.setProperty('--bg-image', "url('back1.png')");
+            }
+        })();
+        // Check local storage for dark mode setting
+        if (localStorage.getItem('darkMode') !== 'disabled') {
+            document.body.classList.add('dark-mode');
+            document.documentElement.style.setProperty('--bg-image', "url('back2.png')");
+        }
+        // Toggle dark mode
+        document.getElementById('darkModeToggle').addEventListener('click', function() {
+            const darkModeEnabled = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', darkModeEnabled ? 'enabled' : 'disabled');
+            if (darkModeEnabled) {
+                document.documentElement.style.setProperty('--bg-image', "url('back2.png')");
+            } else {
+                document.documentElement.style.setProperty('--bg-image', "url('back1.png')");
+            }
+            const currentLanguage = document.getElementById('languageSelect').value;
+            if (darkModeEnabled) {
+                this.innerHTML = currentLanguage === 'kr' ? '🌕 라이트 모드' : '🌕 Light Mode';
+            } else {
+                this.innerHTML = currentLanguage === 'kr' ? '🌙 다크 모드' : '🌙 Dark Mode';
+            }
+        });
+        // Language change function
+        function changeLanguage() {
+            const language = document.getElementById('languageSelect').value;
+            localStorage.setItem('language', language);
+            const elements = document.querySelectorAll('[data-en][data-kr]');
+            elements.forEach(element => {
+                if (language === 'kr') {
+                    element.innerHTML = element.getAttribute('data-kr');
+                } else {
+                    element.innerHTML = element.getAttribute('data-en');
+                }
+            });
+            // placeholder도 변경
+            document.getElementById('name').placeholder = language === 'kr' ? document.getElementById('name').getAttribute('data-kr-placeholder') : document.getElementById('name').getAttribute('data-en-placeholder');
+            document.getElementById('height').placeholder = language === 'kr' ? document.getElementById('height').getAttribute('data-kr-placeholder') : document.getElementById('height').getAttribute('data-en-placeholder');
+            document.getElementById('weight').placeholder = language === 'kr' ? document.getElementById('weight').getAttribute('data-kr-placeholder') : document.getElementById('weight').getAttribute('data-en-placeholder');
+            // 다크모드 토글 텍스트
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            if (isDarkMode) {
+                darkModeToggle.innerHTML = language === 'kr' ? '🌕 라이트 모드' : '🌕 Light Mode';
+            } else {
+                darkModeToggle.innerHTML = language === 'kr' ? '🌙 다크 모드' : '🌙 Dark Mode';
+            }
+        }
+        // Load saved language preference
+        const savedLanguage = localStorage.getItem('language') || 'en';
+        document.getElementById('languageSelect').value = savedLanguage;
+        changeLanguage();
+        // Set initial dark mode toggle button text
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        if (isDarkMode) {
+            darkModeToggle.innerHTML = savedLanguage === 'kr' ? '🌕 라이트 모드' : '🌕 Light Mode';
+        }
+        // Hamburger menu functionality
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+        hamburger.addEventListener('click', function() {
+            hamburger.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+        document.querySelectorAll('.navbar .links a').forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
+        });
+        // Mobile dropdown positioning
+        const languageSelect = document.getElementById('languageSelect');
+        if (languageSelect) {
+            languageSelect.addEventListener('focus', function() {
+                if (window.innerWidth <= 768) {
+                    const rect = this.getBoundingClientRect();
+                    const dropdownHeight = 150;
+                    const viewportHeight = window.innerHeight;
+                    if (rect.bottom + dropdownHeight > viewportHeight) {
+                        const languageSelector = document.querySelector('.language-selector');
+                        languageSelector.style.bottom = 'auto';
+                        languageSelector.style.top = '20px';
+                    }
+                }
+            });
+            languageSelect.addEventListener('blur', function() {
+                if (window.innerWidth <= 768) {
+                    const languageSelector = document.querySelector('.language-selector');
+                    languageSelector.style.bottom = '20px';
+                    languageSelector.style.top = 'auto';
+                }
+            });
+        }
+        // 기존 bmiForm 관련 스크립트 (입력 유효성, 결과 이동 등)는 아래에 그대로 유지
+        const form = document.getElementById('bmiForm');
+        const heightInput = document.getElementById('height');
+        const weightInput = document.getElementById('weight');
+        const nameInput = document.getElementById('name');
+        const heightError = document.getElementById('heightError');
+        const weightError = document.getElementById('weightError');
+        function validateInputs() {
+            let isValid = true;
+            const height = parseFloat(heightInput.value);
+            if (isNaN(height) || height < 100 || height > 250) {
+                heightError.style.display = 'block';
+                isValid = false;
+            } else {
+                heightError.style.display = 'none';
+            }
+            const weight = parseFloat(weightInput.value);
+            if (isNaN(weight) || weight < 30 || weight > 300) {
+                weightError.style.display = 'block';
+                isValid = false;
+            } else {
+                weightError.style.display = 'none';
+            }
+            return isValid;
+        }
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!validateInputs()) {
+                return;
+            }
+            const name = nameInput.value.trim() || '익명';
+            const height = heightInput.value;
+            const weight = weightInput.value;
+            const data = { name: name, height: height, weight: weight };
+            const jsonString = JSON.stringify(data);
+            const base64Data = btoa(encodeURIComponent(jsonString));
+            const url = `bmiresult.html?data=${base64Data}`;
+            window.location.href = url;
+        });
+        heightInput.addEventListener('input', function() {
+            if (this.value) {
+                validateInputs();
+            } else {
+                heightError.style.display = 'none';
+            }
+        });
+        weightInput.addEventListener('input', function() {
+            if (this.value) {
+                validateInputs();
+            } else {
+                weightError.style.display = 'none';
+            }
+        });
+        heightInput.addEventListener('keypress', function(e) {
+            if (!/[0-9.]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+                e.preventDefault();
+            }
+        });
+        weightInput.addEventListener('keypress', function(e) {
+            if (!/[0-9.]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html> 
