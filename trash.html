@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trash Name Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        // 즉시 다크모드 설정 적용 (페이지 로드 전)
+        (function() {
+            if (localStorage.getItem('darkMode') !== 'disabled') {
+                document.documentElement.style.setProperty('--bg-image', "url('back2.png')");
+                document.documentElement.classList.add('dark-mode');
+            } else {
+                document.documentElement.style.setProperty('--bg-image', "url('back1.png')");
+            }
+        })();
+    </script>
+    <style>
+        /* Navbar styling */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #333;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        .navbar .links {
+            display: flex;
+        }
+        .navbar a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+        /* Dark mode toggle button styling */
+        .navbar #darkModeToggle {
+            cursor: pointer;
+            padding: 14px 20px;
+        }
+        
+        /* Hamburger menu */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 10px;
+        }
+        
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+        
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+        
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+        /* Content container styling */
+        .container {
+            width: 30%; /* Adjusted width */
+            max-width: 960px; /* Adjusted max-width */
+            margin: 60px auto 0 auto; /* Adjust margin-top for fixed navbar */
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+            
+            .navbar .links {
+                position: fixed;
+                left: -100%;
+                top: 60px;
+                flex-direction: column;
+                background-color: #333;
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                box-shadow: 0 10px 27px rgba(0, 0, 0, 0.05);
+            }
+            
+            .navbar .links.active {
+                left: 0;
+            }
+            
+            .navbar .links a {
+                margin: 0;
+                padding: 20px;
+                border-bottom: 1px solid #555;
+            }
+            
+            .container {
+                width: 90%;
+                margin: 80px auto 0 auto;
+                padding: 15px;
+            }
+            
+            .language-selector {
+                bottom: 10px;
+                right: 10px;
+            }
+            
+            .language-selector select {
+                padding: 12px 16px;
+                font-size: 16px;
+                min-width: 100px;
+                max-height: 150px;
+            }
+            
+            .translation-notice {
+                bottom: 80px;
+                left: 10px;
+                right: 10px;
+                transform: none;
+                max-width: none;
+            }
+        }
+        
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        /* Body background */
+        body {
+            background: var(--bg-image, url('back1.png')) no-repeat center center fixed;
+            background-size: cover;
+            transition: background 0.3s ease;
+        }
+        
+        /* Dark mode styles */
+        .dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        .dark-mode .container {
+            background: rgba(30, 30, 30, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        
+        .dark-mode .container h1 {
+            color: #ffffff;
+        }
+        
+        .dark-mode .container input {
+            color: #ffffff;
+            background: #333;
+            border: 1px solid #555;
+        }
+        
+        .dark-mode .container input::placeholder {
+            color: #aaa;
+        }
+        
+        .dark-mode .container button {
+            color: #ffffff;
+        }
+        
+        .dark-mode #result {
+            color: #e0e0e0;
+        }
+        .dark-mode .navbar {
+            background-color: #1c1c1c;
+        }
+        .dark-mode .navbar a {
+            color: #e0e0e0;
+        }
+        .dark-mode .navbar a:hover {
+            background-color: #333;
+        }
+        
+        /* Language Selector */
+        .language-selector {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .language-selector select {
+            padding: 16px 24px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .language-selector select {
+            padding: 16px 24px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        
+        .language-selector select:hover {
+            border-color: #889eff;
+            box-shadow: 0 2px 8px rgba(136, 158, 255, 0.3);
+        }
+        
+        .dark-mode .language-selector select {
+            background: #333;
+            color: #e0e0e0;
+            border-color: #555;
+        }
+        
+        .dark-mode .language-selector select:hover {
+            border-color: #a8edea;
+            box-shadow: 0 2px 8px rgba(168, 237, 234, 0.3);
+        }
+        
+        /* Translation notice */
+        .translation-notice {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 193, 7, 0.9);
+            color: #333;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            max-width: 300px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 999;
+            display: none;
+            text-align: center;
+        }
+        
+        .dark-mode .translation-notice {
+            background: rgba(255, 193, 7, 0.8);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="links" id="navLinks">
+            <a href="index.html" data-en="Home" data-kr="홈">Home</a>
+            <a href="trash.html" data-en="Trash Name Generator" data-kr="쓰레기 이름 생성기">Trash Name Generator</a>
+            <a href="fact.html" data-en="Did you know?" data-kr="알고 계셨나요?">Did you know?</a>
+            <a href="yesno.html" data-en="Yes or No" data-kr="예 또는 아니오">Yes or No</a>
+            <a href="time.html" data-en="Time Waste Calculator" data-kr="시간 낭비 계산기">Time Waste Calculator</a>
+        </div>
+        <a href="#" id="darkModeToggle" data-en="🌙 Dark Mode" data-kr="🌙 다크 모드">🌙 Dark Mode</a> <!-- Dark mode toggle button -->
+    </div>
+
+    <div class="container">
+        <h1 data-en="Trash Name Generator" data-kr="쓰레기 이름 생성기">Trash Name Generator</h1>
+        <form id="wordForm">
+            <input type="text" id="nameInput" data-en-placeholder="Enter last name" data-kr-placeholder="성을 입력하세요" placeholder="Enter last name" required>
+            <button type="submit" data-en="Making trash" data-kr="쓰레기 만들기">Making trash</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <select id="languageSelect" onchange="changeLanguage()">
+            <option value="en">English</option>
+            <option value="kr">한국어</option>
+        </select>
+    </div>
+
+    <!-- Translation Notice -->
+    <div class="translation-notice" id="translationNotice">
+        한국어로 설정된 경우 번역 과정을 거치지만 이상한 단어가 많다보니 사전에 없는 단어는 번역이 안될수도 있습니다
+    </div>
+
+    <script>
+        // Check local storage for dark mode setting
+        if (localStorage.getItem('darkMode') !== 'disabled') {
+            document.body.classList.add('dark-mode');
+            document.documentElement.style.setProperty('--bg-image', "url('back2.png')");
+        }
+
+        // Toggle dark mode
+        document.getElementById('darkModeToggle').addEventListener('click', function() {
+            const darkModeEnabled = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', darkModeEnabled ? 'enabled' : 'disabled');
+            
+            // Change background based on mode
+            if (darkModeEnabled) {
+                document.documentElement.style.setProperty('--bg-image', "url('back2.png')");
+            } else {
+                document.documentElement.style.setProperty('--bg-image', "url('back1.png')");
+            }
+            
+            // Update button text based on current language
+            const currentLanguage = document.getElementById('languageSelect').value;
+            if (darkModeEnabled) {
+                this.innerHTML = currentLanguage === 'kr' ? '🌕 라이트 모드' : '🌕 Light Mode';
+            } else {
+                this.innerHTML = currentLanguage === 'kr' ? '🌙 다크 모드' : '🌙 Dark Mode';
+            }
+        });
+
+        // Translation function using MyMemory API
+        async function translateText(text, targetLang) {
+            try {
+                const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|ko`);
+                const data = await response.json();
+                
+                if (data.responseStatus === 200) {
+                    return data.responseData.translatedText;
+                } else {
+                    console.error('Translation API error:', data.responseDetails);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Translation error:', error);
+                return null;
+            }
+        }
+
+        async function fetchRandomWord() {
+            const response = await fetch('https://api.urbandictionary.com/v0/random');
+            const data = await response.json();
+            if (data.list.length > 0) {
+                return data.list[0].word; // Return the word
+            } else {
+                return 'unknown'; // Fallback word
+            }
+        }
+
+        document.getElementById('wordForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent the form from submitting the traditional way
+
+            const name = document.getElementById('nameInput').value.trim();
+            const resultElement = document.getElementById('result');
+            const currentLanguage = document.getElementById('languageSelect').value;
+
+            // Validate the name input (allow Korean and English letters)
+            if (!/^[a-zA-Z가-힣]+$/.test(name)) {
+                const errorMessage = currentLanguage === 'kr' ? 
+                    "올바른 이름을 입력하세요 (영문자 또는 한글만)." : 
+                    "Please enter a valid name (English or Korean letters only).";
+                resultElement.textContent = errorMessage;
+                resultElement.classList.add('error');
+                return;
+            }
+
+            // Remove error class if validation is successful
+            resultElement.classList.remove('error');
+
+            // Show loading message if Korean is selected
+            if (currentLanguage === 'kr') {
+                resultElement.textContent = "번역 중...";
+            }
+
+            // Fetch two random words from Urban Dictionary
+            const word1 = await fetchRandomWord();
+            const word2 = await fetchRandomWord();
+
+            // Combine words and name based on language
+            let result;
+            if (currentLanguage === 'kr') {
+                // For Korean, put the name first, then the words
+                result = `${name} ${word1} ${word2}`;
+                
+                // Try to translate each word individually for better results
+                const words = result.split(' ');
+                const translatedWords = [];
+                
+                for (let word of words) {
+                    // Skip the name (first word) from translation
+                    if (word === name) {
+                        translatedWords.push(word);
+                        continue;
+                    }
+                    
+                    try {
+                        const translatedWord = await translateText(word, 'ko');
+                        if (translatedWord && translatedWord !== word) {
+                            translatedWords.push(translatedWord);
+                        } else {
+                            // If translation fails, keep original word
+                            translatedWords.push(word);
+                        }
+                    } catch (error) {
+                        // If translation fails, keep original word
+                        translatedWords.push(word);
+                    }
+                }
+                
+                result = translatedWords.join(' ');
+            } else {
+                // For English, keep original order
+                result = `${word1} ${word2} ${name}`;
+            }
+
+            // Display the result
+            resultElement.textContent = result;
+        });
+
+        // Language change function
+        function changeLanguage() {
+            const language = document.getElementById('languageSelect').value;
+            localStorage.setItem('language', language);
+            
+            // Update all elements with data attributes
+            const elements = document.querySelectorAll('[data-en][data-kr]');
+            elements.forEach(element => {
+                if (language === 'kr') {
+                    element.innerHTML = element.getAttribute('data-kr');
+                } else {
+                    element.innerHTML = element.getAttribute('data-en');
+                }
+            });
+
+            // Update placeholder
+            const nameInput = document.getElementById('nameInput');
+            if (language === 'kr') {
+                nameInput.placeholder = nameInput.getAttribute('data-kr-placeholder');
+            } else {
+                nameInput.placeholder = nameInput.getAttribute('data-en-placeholder');
+            }
+            
+            // Show/hide translation notice
+            const translationNotice = document.getElementById('translationNotice');
+            if (language === 'kr') {
+                translationNotice.style.display = 'block';
+            } else {
+                translationNotice.style.display = 'none';
+            }
+            
+            // Update dark mode toggle button text
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            if (isDarkMode) {
+                darkModeToggle.innerHTML = language === 'kr' ? '🌕 라이트 모드' : '🌕 Light Mode';
+            } else {
+                darkModeToggle.innerHTML = language === 'kr' ? '🌙 다크 모드' : '🌙 Dark Mode';
+            }
+        }
+
+        // Load saved language preference
+        const savedLanguage = localStorage.getItem('language') || 'en';
+        document.getElementById('languageSelect').value = savedLanguage;
+        changeLanguage();
+        
+        // Set initial dark mode toggle button text
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        if (isDarkMode) {
+            darkModeToggle.innerHTML = savedLanguage === 'kr' ? '🌕 라이트 모드' : '🌕 Light Mode';
+        }
+        
+        // Hamburger menu functionality
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('navLinks');
+        
+        hamburger.addEventListener('click', function() {
+            hamburger.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+        
+        // Close menu when clicking on a link
+        document.querySelectorAll('.navbar .links a').forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
+        });
+        
+        // Mobile dropdown positioning
+        const languageSelect = document.getElementById('languageSelect');
+        if (languageSelect) {
+            languageSelect.addEventListener('focus', function() {
+                if (window.innerWidth <= 768) {
+                    // Check if dropdown would go below viewport
+                    const rect = this.getBoundingClientRect();
+                    const dropdownHeight = 150; // Approximate dropdown height
+                    const viewportHeight = window.innerHeight;
+                    
+                    if (rect.bottom + dropdownHeight > viewportHeight) {
+                        // Move the selector up if dropdown would be cut off
+                        const languageSelector = document.querySelector('.language-selector');
+                        languageSelector.style.bottom = 'auto';
+                        languageSelector.style.top = '20px';
+                    }
+                }
+            });
+            
+            languageSelect.addEventListener('blur', function() {
+                if (window.innerWidth <= 768) {
+                    // Reset position when dropdown closes
+                    const languageSelector = document.querySelector('.language-selector');
+                    languageSelector.style.bottom = '20px';
+                    languageSelector.style.top = 'auto';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
